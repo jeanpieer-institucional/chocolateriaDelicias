@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../../components/AppHeader';
+import { useCart } from '../context/CartContext';
 import { productService } from '../services/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -8,6 +9,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export default function Productos() {
     const [categorias, setCategorias] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const { addToCart } = useCart();
 
     useEffect(() => {
         loadProducts();
@@ -19,27 +21,16 @@ export default function Productos() {
             // Transform API data to match UI structure
             const data = response.data.map((cat: any) => ({
                 ...cat,
-                // Map image names to require statements or URIs
-                // In a real app, these would be URLs. For now, we handle the static images or URLs.
-                // If the API returns a filename like 'peru.png', we need to handle it.
-                // For simplicity in this demo, we might need to rely on the backend sending full URLs or handle local mapping if we kept local assets.
-                // Assuming backend sends filenames and we map them or use them as URIs if they are URLs.
-                // Let's assume for this integration the backend returns what we put in the DB.
-                // Since we inserted filenames, we need a way to resolve them.
-                // For now, I will use a placeholder or try to require if it matches known assets (difficult dynamically).
-                // Better approach: Use the URLs from the DB if they were URLs, or just display the name if image fails.
-                // I will use a placeholder image for now if it's just a filename to avoid crash, or try to use a base URL for images.
-                foto: cat.image ? { uri: `http://localhost:3000/images/${cat.image}` } : null,
+                foto: cat.image ? { uri: `http://192.168.88.102:3000/images/${cat.image}` } : null,
                 productos: cat.productos.map((prod: any) => ({
                     ...prod,
-                    foto: prod.image ? { uri: `http://localhost:3000/images/${prod.image}` } : null,
+                    foto: prod.image ? { uri: `http://192.168.88.102:3000/images/${prod.image}` } : null,
                     precio: `$${prod.price}`
                 }))
             }));
             setCategorias(data);
         } catch (error) {
             console.error('Error loading products:', error);
-            // Fallback to empty or error state
         } finally {
             setLoading(false);
         }
@@ -49,7 +40,6 @@ export default function Productos() {
         <View style={styles.categorySection}>
             <View style={[styles.categoryHeader, { backgroundColor: item.color || '#8B4513' }]}>
                 <Text style={styles.categoryTitle}>{item.nombre || item.name}</Text>
-                {/* Image handling might need adjustment based on actual data */}
             </View>
             <FlatList
                 data={item.productos}
@@ -59,13 +49,15 @@ export default function Productos() {
                 keyExtractor={(prod, index) => index.toString()}
                 renderItem={({ item: prod }) => (
                     <TouchableOpacity style={styles.productCard}>
-                        {/* <Image source={prod.foto} style={styles.productImage} /> */}
                         <View style={[styles.productImage, { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' }]}>
                             <Text>Img</Text>
                         </View>
                         <Text style={styles.productName}>{prod.nombre || prod.name}</Text>
                         <Text style={styles.productPrice}>{prod.precio}</Text>
-                        <TouchableOpacity style={[styles.addButton, { backgroundColor: item.color || '#8B4513' }]}>
+                        <TouchableOpacity
+                            style={[styles.addButton, { backgroundColor: item.color || '#8B4513' }]}
+                            onPress={() => addToCart(prod)}
+                        >
                             <Text style={styles.addButtonText}>+</Text>
                         </TouchableOpacity>
                     </TouchableOpacity>
@@ -77,7 +69,6 @@ export default function Productos() {
     return (
         <View style={styles.container}>
             <AppHeader />
-            {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.mainTitle}>Nuestros Productos</Text>
                 <Text style={styles.subTitle}>Sabor auténtico en cada bocado</Text>
@@ -156,11 +147,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#FFF',
         flex: 1,
-    },
-    categoryImage: {
-        width: 50,
-        height: 50,
-        resizeMode: 'contain',
     },
     productsList: {
         paddingHorizontal: 15,

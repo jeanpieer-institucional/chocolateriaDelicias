@@ -3,41 +3,33 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../app/context/AuthContext';
+import { useCart } from '../app/context/CartContext';
 
 export default function AppHeader() {
     const router = useRouter();
     const { user, logout } = useAuth();
+    const { cartItems } = useCart();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const handleProfilePress = () => {
         if (user) {
-            // Show dropdown menu
             setShowProfileMenu(true);
         } else {
-            // Navigate to login/register screen
             router.push('/');
         }
     };
 
     const handleCartPress = () => {
-        // Navigate to cart screen (to be created)
-        console.log('Cart pressed');
+        router.push('/(tabs)/carrito');
     };
 
     const handleLogout = async () => {
         setShowProfileMenu(false);
-
         try {
-            console.log('Logout button pressed');
-
-            // For now, logout immediately without confirmation
-            // You can add Alert.alert back later if needed
             await logout();
-            console.log('Logout completed, navigating...');
             router.replace('/');
         } catch (error) {
             console.error('Error during logout:', error);
-            alert('Error al cerrar sesión. Por favor intenta de nuevo.');
         }
     };
 
@@ -55,35 +47,6 @@ export default function AppHeader() {
             label: 'Mis Pedidos',
             onPress: () => {
                 setShowProfileMenu(false);
-                // Navigate to orders screen
-                console.log('Navigate to orders');
-            },
-        },
-        {
-            icon: 'heart-outline',
-            label: 'Favoritos',
-            onPress: () => {
-                setShowProfileMenu(false);
-                // Navigate to favorites screen
-                console.log('Navigate to favorites');
-            },
-        },
-        {
-            icon: 'settings-outline',
-            label: 'Ajustes',
-            onPress: () => {
-                setShowProfileMenu(false);
-                // Navigate to settings screen
-                console.log('Navigate to settings');
-            },
-        },
-        {
-            icon: 'help-circle-outline',
-            label: 'Ayuda',
-            onPress: () => {
-                setShowProfileMenu(false);
-                // Navigate to help screen
-                console.log('Navigate to help');
             },
         },
         {
@@ -107,6 +70,13 @@ export default function AppHeader() {
                 <View style={styles.rightSection}>
                     <TouchableOpacity style={styles.iconButton} onPress={handleCartPress}>
                         <Ionicons name="cart-outline" size={24} color="#8B4513" />
+                        {cartItems.length > 0 && (
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>
+                                    {cartItems.length > 9 ? '9+' : cartItems.length}
+                                </Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress}>
@@ -119,7 +89,6 @@ export default function AppHeader() {
                 </View>
             </View>
 
-            {/* Profile Menu Modal */}
             <Modal
                 visible={showProfileMenu}
                 transparent
@@ -217,7 +186,24 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#F5E6D8',
     },
-    // Modal styles
+    badge: {
+        position: 'absolute',
+        top: -5,
+        right: -5,
+        backgroundColor: '#FF5252',
+        borderRadius: 10,
+        width: 18,
+        height: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1.5,
+        borderColor: '#8B4513',
+    },
+    badgeText: {
+        color: '#FFF',
+        fontSize: 10,
+        fontWeight: 'bold',
+    },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',

@@ -93,4 +93,9 @@ export const productService = {
     getAllProducts: () => api.get('/products'),
 };
 
+export const orderService = {
+    createOrder: (items: any[], token: string) =>
+        api.post('/orders', { items }, { headers: { Authorization: `Bearer ${token}` } }),
+};
+
 export default api;
