@@ -28,7 +28,7 @@ export default function Productos() {
                 productos: cat.productos.map((prod: any) => ({
                     ...prod,
                     foto: prod.image ? { uri: `http://192.168.88.102:3000/images/${prod.image}` } : null,
-                    precio: `$${prod.price}`
+                    precio: `S/ ${prod.price}`
                 }))
             }));
             setCategorias(data);

@@ -55,6 +55,7 @@ export default function AppHeader() {
             label: 'Mis Pedidos',
             onPress: () => {
                 setShowProfileMenu(false);
+                router.push('/pedidos');
             },
         },
         {

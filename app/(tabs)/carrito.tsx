@@ -40,7 +40,7 @@ export default function CartScreen() {
                         <Image source={{ uri: item.image_url }} style={styles.itemImage} />
                         <View style={styles.itemDetails}>
                             <Text style={styles.itemName}>{item.name}</Text>
-                            <Text style={styles.itemPrice}>${parseFloat(item.price).toFixed(2)}</Text>
+                            <Text style={styles.itemPrice}>S/ {parseFloat(item.price).toFixed(2)}</Text>
 
                             <View style={styles.quantityContainer}>
                                 <TouchableOpacity
@@ -71,7 +71,7 @@ export default function CartScreen() {
             <View style={styles.footer}>
                 <View style={styles.totalContainer}>
                     <Text style={styles.totalLabel}>Total:</Text>
-                    <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
+                    <Text style={styles.totalAmount}>S/ {total.toFixed(2)}</Text>
                 </View>
                 <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
                     <Text style={styles.checkoutButtonText}>Pagar Ahora</Text>

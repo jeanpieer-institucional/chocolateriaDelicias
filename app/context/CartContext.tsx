@@ -30,7 +30,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(false);
     const { token, user } = useAuth();
 
-    const total = cartItems.reduce((sum, item) => sum + (parseFloat(item.price.replace('$', '')) * item.quantity), 0);
+    const total = cartItems.reduce((sum, item) => sum + (parseFloat(item.price.replace('S/ ', '')) * item.quantity), 0);
 
     // Load cart from AsyncStorage on mount
     useEffect(() => {
@@ -82,7 +82,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return [...prevItems, {
                     id: product.id,
                     name: product.nombre || product.name,
-                    price: product.precio.toString().replace('$', ''),
+                    price: product.precio.toString().replace('S/ ', ''),
                     image_url: imageUrl,
                     quantity: 1
                 }];

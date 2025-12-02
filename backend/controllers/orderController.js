@@ -68,3 +68,48 @@ exports.createOrder = async (req, res) => {
         connection.release();
     }
 };
+
+exports.getOrders = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const [orders] = await db.execute(
+            'SELECT id, total_amount as total, status, created_at FROM orders WHERE user_id = ? ORDER BY created_at DESC',
+            [userId]
+        );
+        res.json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ message: 'Server error fetching orders' });
+    }
+};
+
+exports.getOrderById = async (req, res) => {
+    const userId = req.user.id;
+    const orderId = req.params.id;
+    try {
+        const [orders] = await db.execute(
+            'SELECT id, total_amount as total, status, created_at FROM orders WHERE id = ? AND user_id = ?',
+            [orderId, userId]
+        );
+
+        if (orders.length === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        const order = orders[0];
+
+        const [items] = await db.execute(
+            `SELECT oi.id, oi.quantity, oi.price_at_time as price, p.name as product_name, p.image 
+             FROM order_items oi 
+             JOIN products p ON oi.product_id = p.id 
+             WHERE oi.order_id = ?`,
+            [orderId]
+        );
+
+        order.items = items;
+        res.json(order);
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).json({ message: 'Server error fetching order details' });
+    }
+};
