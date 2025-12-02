@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 // IMPORTANTE: Para Expo Go o dispositivo físico, usa tu IP local
 // Para emulador de Android, usa 10.0.2.2
 // Para simulador de iOS, usa localhost
-const LOCAL_IP = '192.168.88.102';
+const LOCAL_IP = '192.168.1.71' //'192.168.88.102';
 
 // Detectar si estamos en Expo Go o en un build nativo
 const getBaseURL = () => {

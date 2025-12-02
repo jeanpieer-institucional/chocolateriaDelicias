@@ -23,6 +23,7 @@ export default function Layout() {
       <Tabs.Screen name="productos" options={{ title: 'Productos' }} />
       <Tabs.Screen name="blogs" options={{ title: 'Blogs/Recetas' }} />
       <Tabs.Screen name="contacto" options={{ title: 'Contacto' }} />
+      <Tabs.Screen name="favoritos" options={{ href: null }} />
       <Tabs.Screen name="carrito" options={{ href: null }} />
       <Tabs.Screen name="perfil" options={{ href: null }} />
     </Tabs>

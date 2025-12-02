@@ -4,8 +4,8 @@ import AppHeader from '../../components/AppHeader';
 
 export default function Contacto() {
     const contactInfo = {
-        phone: '+51 123 456 789',
-        email: 'contacto@chocodelic<ia.com',
+        phone: '+51 952 295 720',
+        email: 'soporte.ofertas.piero@gmail.com',
         address: 'Av. Dulce 123, Miraflores, Lima',
         hours: {
             weekdays: '9:00 AM - 8:00 PM',
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF8F0',
     },
     header: {
-        height: 200,
+        height: 99,
         position: 'relative',
     },
     headerImage: {

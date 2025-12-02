@@ -43,6 +43,14 @@ export default function AppHeader() {
             },
         },
         {
+            icon: 'heart-outline',
+            label: 'Favoritos',
+            onPress: () => {
+                setShowProfileMenu(false);
+                router.push('/(tabs)/favoritos');
+            },
+        },
+        {
             icon: 'receipt-outline',
             label: 'Mis Pedidos',
             onPress: () => {

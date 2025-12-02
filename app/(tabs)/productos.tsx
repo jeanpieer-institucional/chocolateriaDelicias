@@ -1,7 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../../components/AppHeader';
 import { useCart } from '../context/CartContext';
+import { useFavorites } from '../context/FavoritesContext';
 import { productService } from '../services/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -10,6 +12,7 @@ export default function Productos() {
     const [categorias, setCategorias] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { addToCart } = useCart();
+    const { addToFavorites, isFavorite } = useFavorites();
 
     useEffect(() => {
         loadProducts();
@@ -54,6 +57,18 @@ export default function Productos() {
                         </View>
                         <Text style={styles.productName}>{prod.nombre || prod.name}</Text>
                         <Text style={styles.productPrice}>{prod.precio}</Text>
+
+                        <TouchableOpacity
+                            style={styles.favoriteButton}
+                            onPress={() => addToFavorites(prod)}
+                        >
+                            <Ionicons
+                                name={isFavorite(prod.id) ? "heart" : "heart-outline"}
+                                size={20}
+                                color={isFavorite(prod.id) ? "#FF5252" : "#8D6E63"}
+                            />
+                        </TouchableOpacity>
+
                         <TouchableOpacity
                             style={[styles.addButton, { backgroundColor: item.color || '#8B4513' }]}
                             onPress={() => addToCart(prod)}
@@ -205,5 +220,14 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginTop: -1,
+    },
+    favoriteButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        zIndex: 1,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        borderRadius: 12,
+        padding: 4,
     },
 });
