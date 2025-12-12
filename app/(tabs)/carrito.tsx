@@ -1,16 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useCart } from '../context/CartContext';
 
 export default function CartScreen() {
-    const { cartItems, total, removeFromCart, updateQuantity, loading, checkout } = useCart();
+    const { cartItems, total, removeFromCart, updateQuantity } = useCart();
     const router = useRouter();
-
-    const handleCheckout = async () => {
-        await checkout();
-    };
 
     if (cartItems.length === 0) {
         return (
@@ -73,9 +69,11 @@ export default function CartScreen() {
                     <Text style={styles.totalLabel}>Total:</Text>
                     <Text style={styles.totalAmount}>S/ {total.toFixed(2)}</Text>
                 </View>
-                <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
-                    <Text style={styles.checkoutButtonText}>Pagar Ahora</Text>
-                </TouchableOpacity>
+                <Link href="/checkout" asChild>
+                    <TouchableOpacity style={styles.checkoutButton}>
+                        <Text style={styles.checkoutButtonText}>Pagar Ahora</Text>
+                    </TouchableOpacity>
+                </Link>
             </View>
         </View>
     );

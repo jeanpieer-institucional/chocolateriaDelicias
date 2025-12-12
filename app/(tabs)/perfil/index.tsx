@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../context/AuthContext';
-import { authService } from '../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../services/api';
 
 export default function PerfilScreen() {
     const router = useRouter();
@@ -147,6 +147,23 @@ export default function PerfilScreen() {
                         <View style={styles.cardContent}>
                             <Text style={styles.cardLabel}>Contraseña</Text>
                             <Text style={styles.cardValue}>••••••••</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color="#D4AF37" />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Addresses Card */}
+                <View style={styles.infoCard}>
+                    <TouchableOpacity
+                        style={styles.cardHeader}
+                        onPress={() => router.push('/(tabs)/perfil/direcciones')}
+                    >
+                        <View style={styles.cardIconContainer}>
+                            <Ionicons name="location-outline" size={20} color="#8B4513" />
+                        </View>
+                        <View style={styles.cardContent}>
+                            <Text style={styles.cardLabel}>Mis Direcciones</Text>
+                            <Text style={styles.cardValue}>Gestionar direcciones de envío</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={20} color="#D4AF37" />
                     </TouchableOpacity>

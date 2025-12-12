@@ -1,8 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import AppHeader from '../../components/AppHeader';
 import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/api';
 
@@ -50,7 +48,6 @@ export default function OrderDetails() {
     if (!order) {
         return (
             <View style={styles.container}>
-                <AppHeader />
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>Pedido no encontrado</Text>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -63,14 +60,7 @@ export default function OrderDetails() {
 
     return (
         <View style={styles.container}>
-            <AppHeader />
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
-                        <Ionicons name="arrow-back" size={24} color="#5D4037" />
-                    </TouchableOpacity>
-                    <Text style={styles.title}>Pedido #{order.id}</Text>
-                </View>
 
                 <View style={styles.statusCard}>
                     <View style={styles.statusRow}>

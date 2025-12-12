@@ -19,6 +19,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/addresses', require('./routes/addressRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
 // app.use('/api/cart', require('./routes/cartRoutes')); // Disabled for local cart
 
 // Basic route
@@ -35,5 +37,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Local: http://localhost:${PORT}`);
-    console.log(`Network: http://192.168.1.71:${PORT}`);
+    console.log(`Network: http://10.133.149.41:${PORT}`);
 });

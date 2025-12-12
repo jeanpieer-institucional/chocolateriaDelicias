@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import AppHeader from '../../components/AppHeader';
 import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/api';
 
@@ -92,16 +91,6 @@ export default function OrderHistory() {
 
     return (
         <View style={styles.container}>
-            <AppHeader />
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#5D4037" />
-                </TouchableOpacity>
-                <View>
-                    <Text style={styles.title}>Mis Pedidos 📦</Text>
-                    <Text style={styles.subtitle}>Historial de compras</Text>
-                </View>
-            </View>
 
             {loading ? (
                 <ActivityIndicator size="large" color="#8B4513" style={{ marginTop: 50 }} />
