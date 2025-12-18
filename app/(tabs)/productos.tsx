@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../../components/AppHeader';
 import SearchBar from '../../components/SearchBar';
+import { getCategoryImage, getProductImage } from '../../constants/productImages';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useTheme } from '../context/ThemeContext';
@@ -30,10 +31,14 @@ export default function Productos() {
             const response = await productService.getCategories();
             const data = response.data.map((cat: any) => ({
                 ...cat,
-                foto: cat.image ? { uri: `http://192.168.88.102:3000/images/${cat.image}` } : null,
+                // Usar imágenes locales en lugar de URLs del servidor
+                foto: getCategoryImage(cat.nombre || cat.name),
+                imageFileName: cat.image, // Guardamos para referencia si se necesita
                 productos: cat.productos.map((prod: any) => ({
                     ...prod,
-                    foto: prod.image ? { uri: `http://192.168.88.102:3000/images/${prod.image}` } : null,
+                    // Usar imágenes locales basadas en el nombre del producto
+                    foto: getProductImage(prod.nombre || prod.name, prod.image),
+                    imageFileName: prod.image, // Guardamos para referencia
                     precio: `S/ ${prod.price}`
                 }))
             }));
@@ -74,8 +79,8 @@ export default function Productos() {
 
     const renderProductItem = ({ item: prod, color }: { item: any, color?: string }) => (
         <TouchableOpacity style={[styles.productCard, { backgroundColor: colors.card }]}>
-            <View style={[styles.productImage, { backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={{ color: colors.text }}>Img</Text>
+            <View style={[styles.productImage, { backgroundColor: colors.border }]}>
+                <Image source={prod.foto} style={styles.productImageContent} resizeMode="contain" />
             </View>
             <Text style={[styles.productName, { color: colors.text }]}>{prod.nombre || prod.name}</Text>
             <Text style={[styles.productPrice, { color: colors.primary }]}>{prod.precio}</Text>
@@ -285,9 +290,13 @@ const styles = StyleSheet.create({
     productImage: {
         width: 100,
         height: 100,
-        resizeMode: 'contain',
         marginBottom: 10,
         borderRadius: 10,
+        overflow: 'hidden',
+    },
+    productImageContent: {
+        width: '100%',
+        height: '100%',
     },
     productName: {
         fontSize: 14,

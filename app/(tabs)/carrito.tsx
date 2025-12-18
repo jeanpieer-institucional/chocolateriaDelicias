@@ -35,7 +35,7 @@ export default function CartScreen() {
                 contentContainerStyle={styles.listContent}
                 renderItem={({ item }) => (
                     <View style={[styles.cartItem, { backgroundColor: colors.card }]}>
-                        <Image source={{ uri: item.image_url }} style={styles.itemImage} />
+                        <Image source={item.image_url} style={styles.itemImage} />
                         <View style={styles.itemDetails}>
                             <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
                             <Text style={[styles.itemPrice, { color: colors.primary }]}>S/ {parseFloat(item.price).toFixed(2)}</Text>

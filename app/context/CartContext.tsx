@@ -8,7 +8,7 @@ interface CartItem {
     id: number; // Product ID
     name: string;
     price: string;
-    image_url: string; // Full URL or relative path
+    image_url: any; // Local image resource o URL object
     quantity: number;
 }
 
@@ -71,19 +71,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         : item
                 );
             } else {
-                // Ensure image_url is string
-                let imageUrl = '';
-                if (product.foto && product.foto.uri) {
-                    imageUrl = product.foto.uri;
-                } else if (typeof product.image === 'string') {
-                    imageUrl = product.image;
-                }
+                // Usar la imagen local directamente (foto ya es un recurso local desde productImages)
+                const imageResource = product.foto;
 
                 return [...prevItems, {
                     id: product.id,
                     name: product.nombre || product.name,
                     price: product.precio.toString().replace('S/ ', ''),
-                    image_url: imageUrl,
+                    image_url: imageResource,
                     quantity: 1
                 }];
             }
