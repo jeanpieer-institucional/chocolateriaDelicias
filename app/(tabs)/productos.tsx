@@ -1,18 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../../components/AppHeader';
+import SearchBar from '../../components/SearchBar';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useTheme } from '../context/ThemeContext';
 import { productService } from '../services/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function Productos() {
     const [categorias, setCategorias] = useState<any[]>([]);
+    const [allProducts, setAllProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchText, setSearchText] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
     const { addToCart } = useCart();
     const { addToFavorites, isFavorite } = useFavorites();
+    const { colors } = useTheme();
 
     useEffect(() => {
         loadProducts();
@@ -21,7 +28,6 @@ export default function Productos() {
     const loadProducts = async () => {
         try {
             const response = await productService.getCategories();
-            // Transform API data to match UI structure
             const data = response.data.map((cat: any) => ({
                 ...cat,
                 foto: cat.image ? { uri: `http://192.168.88.102:3000/images/${cat.image}` } : null,
@@ -32,12 +38,67 @@ export default function Productos() {
                 }))
             }));
             setCategorias(data);
+
+            const flatProducts: any[] = [];
+            data.forEach((cat: any) => {
+                const categoryColor = cat.color || '#8B4513';
+                cat.productos.forEach((prod: any) => {
+                    flatProducts.push({ ...prod, categoryName: cat.nombre, categoryColor });
+                });
+            });
+            setAllProducts(flatProducts);
+
         } catch (error) {
             console.error('Error loading products:', error);
         } finally {
             setLoading(false);
         }
     };
+
+    const getFilteredContent = () => {
+        if (searchText.trim().length > 0) {
+            const searchLower = searchText.toLowerCase();
+            const filtered = allProducts.filter(p =>
+                (p.nombre || p.name || '').toLowerCase().includes(searchLower)
+            );
+            return { type: 'search', data: filtered };
+        }
+        if (selectedCategory) {
+            const category = categorias.find(c => (c.nombre || c.name) === selectedCategory);
+            return { type: 'category', data: category ? [category] : [] };
+        }
+        return { type: 'all', data: categorias };
+    };
+
+    const filteredContent = getFilteredContent();
+
+    const renderProductItem = ({ item: prod, color }: { item: any, color?: string }) => (
+        <TouchableOpacity style={[styles.productCard, { backgroundColor: colors.card }]}>
+            <View style={[styles.productImage, { backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={{ color: colors.text }}>Img</Text>
+            </View>
+            <Text style={[styles.productName, { color: colors.text }]}>{prod.nombre || prod.name}</Text>
+            <Text style={[styles.productPrice, { color: colors.primary }]}>{prod.precio}</Text>
+
+            <TouchableOpacity
+                style={[styles.favoriteButton, { backgroundColor: colors.card }]}
+                onPress={() => addToFavorites(prod)}
+            >
+                <Ionicons
+                    name={isFavorite(prod.id) ? "heart" : "heart-outline"}
+                    size={20}
+                    color={isFavorite(prod.id) ? colors.danger : colors.tabIconDefault}
+                />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: color || colors.primary }]}
+                onPress={() => addToCart(prod)}
+            >
+                <Text style={styles.addButtonText}>+</Text>
+            </TouchableOpacity>
+        </TouchableOpacity>
+    );
 
     const renderCategoria = ({ item }: { item: any }) => (
         <View style={styles.categorySection}>
@@ -49,53 +110,96 @@ export default function Productos() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.productsList}
-                keyExtractor={(prod, index) => index.toString()}
-                renderItem={({ item: prod }) => (
-                    <TouchableOpacity style={styles.productCard}>
-                        <View style={[styles.productImage, { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' }]}>
-                            <Text>Img</Text>
-                        </View>
-                        <Text style={styles.productName}>{prod.nombre || prod.name}</Text>
-                        <Text style={styles.productPrice}>{prod.precio}</Text>
-
-                        <TouchableOpacity
-                            style={styles.favoriteButton}
-                            onPress={() => addToFavorites(prod)}
-                        >
-                            <Ionicons
-                                name={isFavorite(prod.id) ? "heart" : "heart-outline"}
-                                size={20}
-                                color={isFavorite(prod.id) ? "#FF5252" : "#8D6E63"}
-                            />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.addButton, { backgroundColor: item.color || '#8B4513' }]}
-                            onPress={() => addToCart(prod)}
-                        >
-                            <Text style={styles.addButtonText}>+</Text>
-                        </TouchableOpacity>
-                    </TouchableOpacity>
-                )}
+                keyExtractor={(prod) => prod.id.toString()}
+                renderItem={({ item: prod }) => renderProductItem({ item: prod, color: item.color })}
             />
         </View>
     );
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             <AppHeader />
-            <View style={styles.header}>
-                <Text style={styles.mainTitle}>Nuestros Productos</Text>
-                <Text style={styles.subTitle}>Sabor auténtico en cada bocado</Text>
+            <View style={[styles.header, { backgroundColor: colors.card }]}>
+                <Text style={[styles.mainTitle, { color: colors.text }]}>Nuestros Productos</Text>
+                <Text style={[styles.subTitle, { color: colors.tabIconDefault }]}>Sabor auténtico en cada bocado</Text>
+            </View>
+
+            <SearchBar
+                value={searchText}
+                onChangeText={setSearchText}
+                onClear={() => setSearchText('')}
+                placeholder="Buscar bombones, trufas..."
+            />
+
+            <View style={styles.filtersContainer}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersContent}>
+                    <TouchableOpacity
+                        style={[
+                            styles.filterChip,
+                            !selectedCategory && styles.filterChipActive,
+                            !selectedCategory && { backgroundColor: colors.primary },
+                            selectedCategory ? { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border } : {}
+                        ]}
+                        onPress={() => setSelectedCategory(null)}
+                    >
+                        <Text style={[
+                            styles.filterText,
+                            !selectedCategory ? { color: '#FFF' } : { color: colors.text }
+                        ]}>
+                            Todos
+                        </Text>
+                    </TouchableOpacity>
+
+                    {categorias.map((cat, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={[
+                                styles.filterChip,
+                                selectedCategory === (cat.nombre || cat.name) && styles.filterChipActive,
+                                selectedCategory === (cat.nombre || cat.name) && { backgroundColor: cat.color || colors.primary },
+                                selectedCategory !== (cat.nombre || cat.name) && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }
+                            ]}
+                            onPress={() => setSelectedCategory(cat.nombre || cat.name)}
+                        >
+                            <Text style={[
+                                styles.filterText,
+                                selectedCategory === (cat.nombre || cat.name) ? { color: '#FFF' } : { color: colors.text }
+                            ]}>
+                                {cat.nombre || cat.name}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
             </View>
 
             {loading ? (
-                <ActivityIndicator size="large" color="#8B4513" style={{ marginTop: 50 }} />
+                <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
+            ) : filteredContent.type === 'search' ? (
+                <FlatList
+                    key="search-grid"
+                    data={filteredContent.data}
+                    numColumns={2}
+                    keyExtractor={(item) => item.id.toString()}
+                    contentContainerStyle={[styles.scrollContent, { paddingHorizontal: 15 }]}
+                    columnWrapperStyle={{ justifyContent: 'space-between' }}
+                    renderItem={({ item }) => (
+                        <View style={{ width: '48%', marginBottom: 15 }}>
+                            {renderProductItem({ item, color: item.categoryColor })}
+                        </View>
+                    )}
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="search-outline" size={50} color={colors.tabIconDefault} />
+                            <Text style={[styles.emptyText, { color: colors.text }]}>No se encontraron productos</Text>
+                        </View>
+                    }
+                />
             ) : (
                 <FlatList
-                    data={categorias}
+                    key="categories-list"
+                    data={filteredContent.data}
                     renderItem={renderCategoria}
-                    keyExtractor={(item, index) => index.toString()}
+                    keyExtractor={(item) => (item.id || item.nombre).toString()}
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                 />
@@ -121,7 +225,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 8,
-        marginBottom: 10,
     },
     mainTitle: {
         fontSize: 28,
@@ -226,8 +329,34 @@ const styles = StyleSheet.create({
         top: 10,
         right: 10,
         zIndex: 1,
-        backgroundColor: 'rgba(255,255,255,0.8)',
         borderRadius: 12,
         padding: 4,
+    },
+    filtersContainer: {
+        marginBottom: 15,
+    },
+    filtersContent: {
+        paddingHorizontal: 20,
+    },
+    filterChip: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        marginRight: 10,
+    },
+    filterChipActive: {
+    },
+    filterText: {
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        paddingTop: 50,
+    },
+    emptyText: {
+        marginTop: 10,
+        fontSize: 16,
+        fontWeight: '500',
     },
 });

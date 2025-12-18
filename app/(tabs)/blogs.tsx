@@ -1,5 +1,6 @@
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../../components/AppHeader';
+import { useTheme } from '../context/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -39,13 +40,15 @@ const blogs = [
 ];
 
 export default function Blogs() {
+    const { colors } = useTheme();
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             <AppHeader />
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.mainTitle}>Blog ChocoDelisias</Text>
-                <Text style={styles.subTitle}>Descubre el mundo del chocolate artesanal</Text>
+            <View style={[styles.header, { backgroundColor: colors.card }]}>
+                <Text style={[styles.mainTitle, { color: colors.text }]}>Blog ChocoDelisias</Text>
+                <Text style={[styles.subTitle, { color: colors.tabIconDefault }]}>Descubre el mundo del chocolate artesanal</Text>
             </View>
 
             <ScrollView
@@ -54,15 +57,15 @@ export default function Blogs() {
                 contentContainerStyle={styles.scrollContent}
             >
                 {/* Featured Blog */}
-                <Text style={styles.sectionTitle}>Artículo Destacado</Text>
-                <TouchableOpacity style={styles.featuredCard}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Artículo Destacado</Text>
+                <TouchableOpacity style={[styles.featuredCard, { backgroundColor: colors.card }]}>
                     <Image source={blogs[0].foto} style={styles.featuredImg} />
                     <View style={styles.featuredContent}>
-                        <View style={styles.featuredBadge}>
+                        <View style={[styles.featuredBadge, { backgroundColor: colors.primary }]}>
                             <Text style={styles.featuredBadgeText}>DESTACADO</Text>
                         </View>
-                        <Text style={styles.featuredTitle}>{blogs[0].titulo}</Text>
-                        <Text style={styles.featuredResumen}>{blogs[0].resumen}</Text>
+                        <Text style={[styles.featuredTitle, { color: colors.text }]}>{blogs[0].titulo}</Text>
+                        <Text style={[styles.featuredResumen, { color: colors.text }]}>{blogs[0].resumen}</Text>
                         <View style={styles.metaInfo}>
                             <Text style={styles.metaText}>{blogs[0].fecha}</Text>
                             <Text style={styles.metaDot}>•</Text>
@@ -72,10 +75,10 @@ export default function Blogs() {
                 </TouchableOpacity>
 
                 {/* All Blogs */}
-                <Text style={styles.sectionTitle}>Todos los Artículos</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Todos los Artículos</Text>
                 <View style={styles.blogsGrid}>
                     {blogs.map((blog, idx) => (
-                        <TouchableOpacity key={idx} style={styles.blogCard}>
+                        <TouchableOpacity key={idx} style={[styles.blogCard, { backgroundColor: colors.card }]}>
                             <View style={styles.imageContainer}>
                                 <Image source={blog.foto} style={styles.blogImg} />
                                 <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(blog.categoria) }]}>
@@ -84,8 +87,8 @@ export default function Blogs() {
                             </View>
 
                             <View style={styles.blogContent}>
-                                <Text style={styles.blogTitle}>{blog.titulo}</Text>
-                                <Text style={styles.blogResumen} numberOfLines={3}>
+                                <Text style={[styles.blogTitle, { color: colors.text }]}>{blog.titulo}</Text>
+                                <Text style={[styles.blogResumen, { color: colors.text }]} numberOfLines={3}>
                                     {blog.resumen}
                                 </Text>
 
@@ -95,7 +98,7 @@ export default function Blogs() {
                                         <Text style={styles.metaDot}>•</Text>
                                         <Text style={styles.metaText}>{blog.tiempoLectura}</Text>
                                     </View>
-                                    <TouchableOpacity style={styles.readButton}>
+                                    <TouchableOpacity style={[styles.readButton, { backgroundColor: colors.primary }]}>
                                         <Text style={styles.readButtonText}>Leer</Text>
                                     </TouchableOpacity>
                                 </View>

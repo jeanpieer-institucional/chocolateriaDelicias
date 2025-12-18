@@ -3,17 +3,19 @@ import { Link, useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useCart } from '../context/CartContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function CartScreen() {
     const { cartItems, total, removeFromCart, updateQuantity } = useCart();
     const router = useRouter();
+    const { colors } = useTheme();
 
     if (cartItems.length === 0) {
         return (
-            <View style={styles.emptyContainer}>
-                <Ionicons name="cart-outline" size={80} color="#D7CCC8" />
-                <Text style={styles.emptyText}>Tu carrito está vacío</Text>
-                <TouchableOpacity style={styles.shopButton} onPress={() => router.push('/(tabs)/productos')}>
+            <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
+                <Ionicons name="cart-outline" size={80} color={colors.tabIconDefault} />
+                <Text style={[styles.emptyText, { color: colors.text }]}>Tu carrito está vacío</Text>
+                <TouchableOpacity style={[styles.shopButton, { backgroundColor: colors.primary }]} onPress={() => router.push('/(tabs)/productos')}>
                     <Text style={styles.shopButtonText}>Ir a comprar</Text>
                 </TouchableOpacity>
             </View>
@@ -21,10 +23,10 @@ export default function CartScreen() {
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Mi Carrito</Text>
-                <Text style={styles.itemCount}>{cartItems.length} items</Text>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Mi Carrito</Text>
+                <Text style={[styles.itemCount, { color: colors.tabIconDefault }]}>{cartItems.length} items</Text>
             </View>
 
             <FlatList
@@ -32,25 +34,25 @@ export default function CartScreen() {
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContent}
                 renderItem={({ item }) => (
-                    <View style={styles.cartItem}>
+                    <View style={[styles.cartItem, { backgroundColor: colors.card }]}>
                         <Image source={{ uri: item.image_url }} style={styles.itemImage} />
                         <View style={styles.itemDetails}>
-                            <Text style={styles.itemName}>{item.name}</Text>
-                            <Text style={styles.itemPrice}>S/ {parseFloat(item.price).toFixed(2)}</Text>
+                            <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+                            <Text style={[styles.itemPrice, { color: colors.primary }]}>S/ {parseFloat(item.price).toFixed(2)}</Text>
 
-                            <View style={styles.quantityContainer}>
+                            <View style={[styles.quantityContainer, { backgroundColor: colors.background }]}>
                                 <TouchableOpacity
                                     onPress={() => updateQuantity(item.id, item.quantity - 1)}
                                     style={styles.quantityButton}
                                 >
-                                    <Ionicons name="remove" size={16} color="#5D4037" />
+                                    <Ionicons name="remove" size={16} color={colors.text} />
                                 </TouchableOpacity>
-                                <Text style={styles.quantityText}>{item.quantity}</Text>
+                                <Text style={[styles.quantityText, { color: colors.text }]}>{item.quantity}</Text>
                                 <TouchableOpacity
                                     onPress={() => updateQuantity(item.id, item.quantity + 1)}
                                     style={styles.quantityButton}
                                 >
-                                    <Ionicons name="add" size={16} color="#5D4037" />
+                                    <Ionicons name="add" size={16} color={colors.text} />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -58,19 +60,19 @@ export default function CartScreen() {
                             onPress={() => removeFromCart(item.id)}
                             style={styles.removeButton}
                         >
-                            <Ionicons name="trash-outline" size={20} color="#FF5252" />
+                            <Ionicons name="trash-outline" size={20} color={colors.danger} />
                         </TouchableOpacity>
                     </View>
                 )}
             />
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
                 <View style={styles.totalContainer}>
-                    <Text style={styles.totalLabel}>Total:</Text>
-                    <Text style={styles.totalAmount}>S/ {total.toFixed(2)}</Text>
+                    <Text style={[styles.totalLabel, { color: colors.tabIconDefault }]}>Total:</Text>
+                    <Text style={[styles.totalAmount, { color: colors.text }]}>S/ {total.toFixed(2)}</Text>
                 </View>
                 <Link href="/checkout" asChild>
-                    <TouchableOpacity style={styles.checkoutButton}>
+                    <TouchableOpacity style={[styles.checkoutButton, { backgroundColor: colors.primary }]}>
                         <Text style={styles.checkoutButtonText}>Pagar Ahora</Text>
                     </TouchableOpacity>
                 </Link>

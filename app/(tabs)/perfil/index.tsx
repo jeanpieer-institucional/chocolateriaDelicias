@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { authService } from '../../services/api';
 
 export default function PerfilScreen() {
     const router = useRouter();
     const { user, token, login } = useAuth();
+    const { theme, toggleTheme, colors } = useTheme();
     const [showEditName, setShowEditName] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
 
@@ -82,20 +84,20 @@ export default function PerfilScreen() {
     }
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: colors.primary }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#FFF" />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} style={{ color: '#FFF' }} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Mi Perfil</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             {/* Avatar Section */}
-            <View style={styles.avatarSection}>
+            <View style={[styles.avatarSection, { backgroundColor: colors.primary }]}>
                 <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarText}>{user.name.charAt(0).toUpperCase()}</Text>
+                    <Text style={[styles.avatarText, { color: colors.card }]}>{user.name.charAt(0).toUpperCase()}</Text>
                 </View>
                 <Text style={styles.userName}>{user.name}</Text>
                 <Text style={styles.userEmail}>{user.email}</Text>
@@ -103,69 +105,92 @@ export default function PerfilScreen() {
 
             {/* Info Cards */}
             <View style={styles.cardsContainer}>
-                {/* Name Card */}
-                <View style={styles.infoCard}>
-                    <View style={styles.cardHeader}>
-                        <View style={styles.cardIconContainer}>
-                            <Ionicons name="person-outline" size={20} color="#8B4513" />
+                {/* Theme Toggle Card */}
+                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+                    <TouchableOpacity
+                        style={styles.cardHeader}
+                        onPress={toggleTheme}
+                    >
+                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
+                            <Ionicons name={theme === 'dark' ? "moon" : "sunny"} size={20} color={colors.primary} />
                         </View>
                         <View style={styles.cardContent}>
-                            <Text style={styles.cardLabel}>Nombre</Text>
-                            <Text style={styles.cardValue}>{user.name}</Text>
+                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Tema</Text>
+                            <Text style={[styles.cardValue, { color: colors.text }]}>{theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro'}</Text>
+                        </View>
+                        <View pointerEvents="none">
+                            <Ionicons
+                                name={theme === 'dark' ? "toggle" : "toggle-outline"}
+                                size={30}
+                                color={colors.primary}
+                            />
+                        </View>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Name Card */}
+                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+                    <View style={styles.cardHeader}>
+                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
+                            <Ionicons name="person-outline" size={20} color={colors.primary} />
+                        </View>
+                        <View style={styles.cardContent}>
+                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Nombre</Text>
+                            <Text style={[styles.cardValue, { color: colors.text }]}>{user.name}</Text>
                         </View>
                         <TouchableOpacity onPress={() => {
                             setNewName(user.name);
                             setShowEditName(true);
                         }}>
-                            <Ionicons name="pencil" size={20} color="#D4AF37" />
+                            <Ionicons name="pencil" size={20} color={colors.secondary} />
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Email Card */}
-                <View style={styles.infoCard}>
+                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
                     <View style={styles.cardHeader}>
-                        <View style={styles.cardIconContainer}>
-                            <Ionicons name="mail-outline" size={20} color="#8B4513" />
+                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
+                            <Ionicons name="mail-outline" size={20} color={colors.primary} />
                         </View>
                         <View style={styles.cardContent}>
-                            <Text style={styles.cardLabel}>Correo Electrónico</Text>
-                            <Text style={styles.cardValue}>{user.email}</Text>
+                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Correo Electrónico</Text>
+                            <Text style={[styles.cardValue, { color: colors.text }]}>{user.email}</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Password Card */}
-                <View style={styles.infoCard}>
+                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
                     <TouchableOpacity
                         style={styles.cardHeader}
                         onPress={() => setShowChangePassword(true)}
                     >
-                        <View style={styles.cardIconContainer}>
-                            <Ionicons name="lock-closed-outline" size={20} color="#8B4513" />
+                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
+                            <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
                         </View>
                         <View style={styles.cardContent}>
-                            <Text style={styles.cardLabel}>Contraseña</Text>
-                            <Text style={styles.cardValue}>••••••••</Text>
+                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Contraseña</Text>
+                            <Text style={[styles.cardValue, { color: colors.text }]}>••••••••</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color="#D4AF37" />
+                        <Ionicons name="chevron-forward" size={20} color={colors.secondary} />
                     </TouchableOpacity>
                 </View>
 
                 {/* Addresses Card */}
-                <View style={styles.infoCard}>
+                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
                     <TouchableOpacity
                         style={styles.cardHeader}
                         onPress={() => router.push('/(tabs)/perfil/direcciones')}
                     >
-                        <View style={styles.cardIconContainer}>
-                            <Ionicons name="location-outline" size={20} color="#8B4513" />
+                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
+                            <Ionicons name="location-outline" size={20} color={colors.primary} />
                         </View>
                         <View style={styles.cardContent}>
-                            <Text style={styles.cardLabel}>Mis Direcciones</Text>
-                            <Text style={styles.cardValue}>Gestionar direcciones de envío</Text>
+                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Mis Direcciones</Text>
+                            <Text style={[styles.cardValue, { color: colors.text }]}>Gestionar direcciones de envío</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color="#D4AF37" />
+                        <Ionicons name="chevron-forward" size={20} color={colors.secondary} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -178,12 +203,13 @@ export default function PerfilScreen() {
                 onRequestClose={() => setShowEditName(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContainer}>
-                        <Text style={styles.modalTitle}>Editar Nombre</Text>
+                    <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Editar Nombre</Text>
 
                         <TextInput
-                            style={styles.modalInput}
+                            style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                             placeholder="Nuevo nombre"
+                            placeholderTextColor={colors.placeholder}
                             value={newName}
                             onChangeText={setNewName}
                             autoFocus
@@ -191,13 +217,13 @@ export default function PerfilScreen() {
 
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
+                                style={[styles.modalButton, { backgroundColor: colors.border }]}
                                 onPress={() => setShowEditName(false)}
                             >
-                                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancelar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.saveButton]}
+                                style={[styles.modalButton, { backgroundColor: colors.secondary }]}
                                 onPress={handleUpdateName}
                                 disabled={loadingName}
                             >
@@ -218,28 +244,31 @@ export default function PerfilScreen() {
                 onRequestClose={() => setShowChangePassword(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContainer}>
-                        <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+                    <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Cambiar Contraseña</Text>
 
                         <TextInput
-                            style={styles.modalInput}
+                            style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                             placeholder="Contraseña actual"
+                            placeholderTextColor={colors.placeholder}
                             secureTextEntry
                             value={currentPassword}
                             onChangeText={setCurrentPassword}
                         />
 
                         <TextInput
-                            style={styles.modalInput}
+                            style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                             placeholder="Nueva contraseña"
+                            placeholderTextColor={colors.placeholder}
                             secureTextEntry
                             value={newPassword}
                             onChangeText={setNewPassword}
                         />
 
                         <TextInput
-                            style={styles.modalInput}
+                            style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                             placeholder="Confirmar nueva contraseña"
+                            placeholderTextColor={colors.placeholder}
                             secureTextEntry
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
@@ -247,7 +276,7 @@ export default function PerfilScreen() {
 
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
+                                style={[styles.modalButton, { backgroundColor: colors.border }]}
                                 onPress={() => {
                                     setShowChangePassword(false);
                                     setCurrentPassword('');
@@ -255,10 +284,10 @@ export default function PerfilScreen() {
                                     setConfirmPassword('');
                                 }}
                             >
-                                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancelar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.saveButton]}
+                                style={[styles.modalButton, { backgroundColor: colors.secondary }]}
                                 onPress={handleChangePassword}
                                 disabled={loadingPassword}
                             >

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const CARD_WIDTH = Dimensions.get("window").width * 0.28;
@@ -23,10 +22,13 @@ const ofertas = [
 ]
 
 import AppHeader from '../../components/AppHeader';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Inicio() {
+    const { colors } = useTheme();
+
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
             <AppHeader />
             {/* Header con gradiente */}
             <View style={styles.header}>
@@ -41,19 +43,19 @@ export default function Inicio() {
             {/* Sección de ofertas */}
             <View style={styles.ofertasSection}>
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.bannerTitle}>Ofertas del Mes</Text>
+                    <Text style={[styles.bannerTitle, { color: colors.text }]}>Ofertas del Mes</Text>
                     <View style={styles.titleUnderline}></View>
                 </View>
 
                 <View style={styles.bannerRow}>
                     {ofertas.map((item, idx) => (
-                        <View key={idx} style={[styles.bannerCard, { borderTopColor: item.color }]}>
+                        <View key={idx} style={[styles.bannerCard, { borderTopColor: item.color, backgroundColor: colors.card }]}>
                             <View style={styles.imageContainer}>
                                 {item.foto && (
                                     <Image source={item.foto} style={styles.bannerImg} resizeMode='contain' />
                                 )}
                             </View>
-                            <Text style={styles.bannerText}>{item.texto}</Text>
+                            <Text style={[styles.bannerText, { color: colors.text }]}>{item.texto}</Text>
                             <View style={[styles.promoBadge, { backgroundColor: item.color }]}>
                                 <Text style={styles.promoBadgeText}>PROMO</Text>
                             </View>
@@ -63,9 +65,9 @@ export default function Inicio() {
             </View>
 
             {/* Sección adicional */}
-            <View style={styles.infoSection}>
-                <Text style={styles.infoTitle}>🍫 Chocolate Artesanal</Text>
-                <Text style={styles.infoText}>
+            <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
+                <Text style={[styles.infoTitle, { color: colors.text }]}>🍫 Chocolate Artesanal</Text>
+                <Text style={[styles.infoText, { color: colors.text }]}>
                     Descubre nuestra exclusiva selección de chocolates elaborados
                     con los mejores ingredientes y mucho amor.
                 </Text>
@@ -73,15 +75,15 @@ export default function Inicio() {
                 <View style={styles.featuresRow}>
                     <View style={styles.featureItem}>
                         <Text style={styles.featureIcon}>🚚</Text>
-                        <Text style={styles.featureText}>Envío Rápido</Text>
+                        <Text style={[styles.featureText, { color: colors.primary }]}>Envío Rápido</Text>
                     </View>
                     <View style={styles.featureItem}>
                         <Text style={styles.featureIcon}>⭐</Text>
-                        <Text style={styles.featureText}>Calidad Premium</Text>
+                        <Text style={[styles.featureText, { color: colors.primary }]}>Calidad Premium</Text>
                     </View>
                     <View style={styles.featureItem}>
                         <Text style={styles.featureIcon}>🎁</Text>
-                        <Text style={styles.featureText}>Regalos Especiales</Text>
+                        <Text style={[styles.featureText, { color: colors.primary }]}>Regalos Especiales</Text>
                     </View>
                 </View>
             </View>

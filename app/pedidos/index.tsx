@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { orderService } from '../services/api';
 
 export default function OrderHistory() {
@@ -10,6 +11,7 @@ export default function OrderHistory() {
     const [loading, setLoading] = useState(true);
     const { token } = useAuth();
     const router = useRouter();
+    const { colors } = useTheme();
 
     useEffect(() => {
         if (token) {
@@ -57,11 +59,11 @@ export default function OrderHistory() {
 
     const renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, { backgroundColor: colors.card }]}
             onPress={() => router.push(`/pedidos/${item.id}`)}
         >
-            <View style={styles.cardHeader}>
-                <Text style={styles.orderId}>Pedido #{item.id}</Text>
+            <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.orderId, { color: colors.text }]}>Pedido #{item.id}</Text>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status || 'pending') }]}>
                     <Text style={styles.statusText}>{getStatusText(item.status || 'pending')}</Text>
                 </View>
@@ -69,36 +71,47 @@ export default function OrderHistory() {
 
             <View style={styles.cardBody}>
                 <View style={styles.row}>
-                    <Ionicons name="calendar-outline" size={16} color="#8D6E63" />
-                    <Text style={styles.dateText}>
+                    <Ionicons name="calendar-outline" size={16} color={colors.tabIconDefault} />
+                    <Text style={[styles.dateText, { color: colors.tabIconDefault }]}>
                         {new Date(item.created_at || Date.now()).toLocaleDateString()}
                     </Text>
                 </View>
                 <View style={styles.row}>
-                    <Ionicons name="cash-outline" size={16} color="#8D6E63" />
-                    <Text style={styles.totalText}>S/ {item.total}</Text>
+                    <Ionicons name="cash-outline" size={16} color={colors.tabIconDefault} />
+                    <Text style={[styles.totalText, { color: colors.primary }]}>S/ {item.total}</Text>
                 </View>
             </View>
 
             <View style={styles.cardFooter}>
-                <Text style={styles.itemsText}>
+                <Text style={[styles.itemsText, { color: colors.tabIconDefault }]}>
                     {item.items ? `${item.items.length} productos` : 'Ver detalles'}
                 </Text>
-                <Ionicons name="chevron-forward" size={20} color="#8D6E63" />
+                <Ionicons name="chevron-forward" size={20} color={colors.tabIconDefault} />
             </View>
         </TouchableOpacity>
     );
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <Stack.Screen options={{ headerShown: false }} />
+
+            <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
+                </TouchableOpacity>
+                <View>
+                    <Text style={[styles.title, { color: colors.text }]}>Mis Pedidos 📦</Text>
+                    <Text style={[styles.subtitle, { color: colors.tabIconDefault }]}>Historial de compras</Text>
+                </View>
+            </View>
 
             {loading ? (
-                <ActivityIndicator size="large" color="#8B4513" style={{ marginTop: 50 }} />
+                <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
             ) : orders.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                    <Ionicons name="receipt-outline" size={80} color="#D7CCC8" />
-                    <Text style={styles.emptyText}>No tienes pedidos aún</Text>
-                    <Text style={styles.emptySubtext}>Tus compras aparecerán aquí</Text>
+                    <Ionicons name="receipt-outline" size={80} color={colors.tabIconDefault} />
+                    <Text style={[styles.emptyText, { color: colors.text }]}>No tienes pedidos aún</Text>
+                    <Text style={[styles.emptySubtext, { color: colors.tabIconDefault }]}>Tus compras aparecerán aquí</Text>
                 </View>
             ) : (
                 <FlatList
@@ -119,7 +132,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF8F0',
     },
     header: {
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+        paddingTop: 60, //Separación con el header de la ventana de pedidos
         backgroundColor: '#FFF',
         borderBottomLeftRadius: 25,
         borderBottomRightRadius: 25,

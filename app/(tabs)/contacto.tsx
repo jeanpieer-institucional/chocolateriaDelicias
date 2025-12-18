@@ -1,8 +1,11 @@
 import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../../components/AppHeader';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Contacto() {
+    const { colors } = useTheme();
+
     const contactInfo = {
         phone: '+51 952 295 720',
         email: 'soporte.ofertas.piero@gmail.com',
@@ -27,7 +30,7 @@ export default function Contacto() {
     };
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
             <AppHeader />
             {/* Header Section */}
             <View style={styles.header}>
@@ -44,16 +47,16 @@ export default function Contacto() {
             {/* Main Content */}
             <View style={styles.content}>
                 {/* Store Info Card */}
-                <View style={styles.infoCard}>
+                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
                     <View style={styles.storeHeader}>
-                        <Text style={styles.storeName}>ChocoDelizia Tienda</Text>
+                        <Text style={[styles.storeName, { color: colors.text }]}>ChocoDelizia Tienda</Text>
                         <View style={styles.statusBadge}>
                             <View style={styles.statusDot} />
                             <Text style={styles.statusText}>Abierto ahora</Text>
                         </View>
                     </View>
 
-                    <Text style={styles.storeDescription}>
+                    <Text style={[styles.storeDescription, { color: colors.text }]}>
                         Tu destino premium para los mejores chocolates artesanales elaborados con cacao peruano de la más alta calidad.
                     </Text>
 
@@ -66,9 +69,9 @@ export default function Contacto() {
                             </View>
                             <View style={styles.contactText}>
                                 <Text style={styles.contactLabel}>Teléfono</Text>
-                                <Text style={styles.contactValue}>{contactInfo.phone}</Text>
+                                <Text style={[styles.contactValue, { color: colors.text }]}>{contactInfo.phone}</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#8D6E63" />
+                            <MaterialIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
                         </TouchableOpacity>
 
                         {/* Email */}
@@ -78,9 +81,9 @@ export default function Contacto() {
                             </View>
                             <View style={styles.contactText}>
                                 <Text style={styles.contactLabel}>Email</Text>
-                                <Text style={styles.contactValue}>{contactInfo.email}</Text>
+                                <Text style={[styles.contactValue, { color: colors.text }]}>{contactInfo.email}</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#8D6E63" />
+                            <MaterialIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
                         </TouchableOpacity>
 
                         {/* Address */}
@@ -90,9 +93,9 @@ export default function Contacto() {
                             </View>
                             <View style={styles.contactText}>
                                 <Text style={styles.contactLabel}>Dirección</Text>
-                                <Text style={styles.contactValue}>{contactInfo.address}</Text>
+                                <Text style={[styles.contactValue, { color: colors.text }]}>{contactInfo.address}</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#8D6E63" />
+                            <MaterialIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
                         </TouchableOpacity>
 
                         {/* Hours */}
@@ -103,8 +106,8 @@ export default function Contacto() {
                             <View style={styles.contactText}>
                                 <Text style={styles.contactLabel}>Horario</Text>
                                 <View>
-                                    <Text style={styles.hoursText}>Lunes a Viernes: {contactInfo.hours.weekdays}</Text>
-                                    <Text style={styles.hoursText}>Sábados y Domingos: {contactInfo.hours.weekends}</Text>
+                                    <Text style={[styles.hoursText, { color: colors.text }]}>Lunes a Viernes: {contactInfo.hours.weekdays}</Text>
+                                    <Text style={[styles.hoursText, { color: colors.text }]}>Sábados y Domingos: {contactInfo.hours.weekends}</Text>
                                 </View>
                             </View>
                         </View>
@@ -113,31 +116,31 @@ export default function Contacto() {
 
                 {/* Quick Actions */}
                 <View style={styles.actionsRow}>
-                    <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
-                        <Ionicons name="call" size={24} color="#8B4513" />
-                        <Text style={styles.actionText}>Llamar</Text>
+                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={handleCall}>
+                        <Ionicons name="call" size={24} color={colors.primary} />
+                        <Text style={[styles.actionText, { color: colors.primary }]}>Llamar</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.actionButton} onPress={handleEmail}>
-                        <Ionicons name="mail" size={24} color="#8B4513" />
-                        <Text style={styles.actionText}>Email</Text>
+                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={handleEmail}>
+                        <Ionicons name="mail" size={24} color={colors.primary} />
+                        <Text style={[styles.actionText, { color: colors.primary }]}>Email</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.actionButton} onPress={handleOpenMaps}>
-                        <Ionicons name="navigate" size={24} color="#8B4513" />
-                        <Text style={styles.actionText}>Cómo llegar</Text>
+                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={handleOpenMaps}>
+                        <Ionicons name="navigate" size={24} color={colors.primary} />
+                        <Text style={[styles.actionText, { color: colors.primary }]}>Cómo llegar</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Map Preview */}
                 <View style={styles.mapSection}>
-                    <Text style={styles.sectionTitle}>Nuestra Ubicación</Text>
-                    <View style={styles.mapPreview}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Nuestra Ubicación</Text>
+                    <View style={[styles.mapPreview, { backgroundColor: colors.card }]}>
                         <Image
                             source={{ uri: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80' }}
                             style={styles.mapImage}
                         />
-                        <TouchableOpacity style={styles.mapButton} onPress={handleOpenMaps}>
+                        <TouchableOpacity style={[styles.mapButton, { backgroundColor: colors.primary }]} onPress={handleOpenMaps}>
                             <Text style={styles.mapButtonText}>Abrir en Maps</Text>
                         </TouchableOpacity>
                     </View>

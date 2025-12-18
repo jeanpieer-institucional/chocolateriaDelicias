@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../app/context/AuthContext';
 import { useCart } from '../app/context/CartContext';
+import { useTheme } from '../app/context/ThemeContext';
 
 export default function AppHeader() {
     const router = useRouter();
     const { user, logout } = useAuth();
     const { cartItems } = useCart();
+    const { colors } = useTheme();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const handleProfilePress = () => {
@@ -68,19 +70,19 @@ export default function AppHeader() {
 
     return (
         <>
-            <View style={styles.container}>
+            <View style={[styles.container, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
                 <View style={styles.leftSection}>
-                    <Text style={styles.welcomeText}>Bienvenido</Text>
-                    <Text style={styles.subText}>
+                    <Text style={[styles.welcomeText, { color: colors.tabIconDefault }]}>Bienvenido</Text>
+                    <Text style={[styles.subText, { color: colors.text }]}>
                         {user ? user.name : 'Únete a Choco Delisias'}
                     </Text>
                 </View>
 
                 <View style={styles.rightSection}>
-                    <TouchableOpacity style={styles.iconButton} onPress={handleCartPress}>
-                        <Ionicons name="cart-outline" size={24} color="#8B4513" />
+                    <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={handleCartPress}>
+                        <Ionicons name="cart-outline" size={24} color={colors.primary} />
                         {cartItems.length > 0 && (
-                            <View style={styles.badge}>
+                            <View style={[styles.badge, { backgroundColor: colors.danger, borderColor: colors.card }]}>
                                 <Text style={styles.badgeText}>
                                     {cartItems.length > 9 ? '9+' : cartItems.length}
                                 </Text>
@@ -88,11 +90,11 @@ export default function AppHeader() {
                         )}
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress}>
+                    <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={handleProfilePress}>
                         <Ionicons
                             name={user ? "person" : "person-outline"}
                             size={24}
-                            color="#8B4513"
+                            color={colors.primary}
                         />
                     </TouchableOpacity>
                 </View>
@@ -109,15 +111,15 @@ export default function AppHeader() {
                     activeOpacity={1}
                     onPress={() => setShowProfileMenu(false)}
                 >
-                    <View style={styles.menuContainer}>
-                        <View style={styles.menuHeader}>
+                    <View style={[styles.menuContainer, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+                        <View style={[styles.menuHeader, { backgroundColor: colors.primary }]}>
                             <View style={styles.userInfo}>
-                                <View style={styles.avatarCircle}>
+                                <View style={[styles.avatarCircle, { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: '#FFF' }]}>
                                     <Ionicons name="person" size={24} color="#FFF" />
                                 </View>
                                 <View>
-                                    <Text style={styles.userName}>{user?.name}</Text>
-                                    <Text style={styles.userEmail}>{user?.email}</Text>
+                                    <Text style={[styles.userName, { color: '#FFF' }]}>{user?.name}</Text>
+                                    <Text style={[styles.userEmail, { color: 'rgba(255, 255, 255, 0.8)' }]}>{user?.email}</Text>
                                 </View>
                             </View>
                         </View>
@@ -132,11 +134,11 @@ export default function AppHeader() {
                                     <Ionicons
                                         name={item.icon as any}
                                         size={22}
-                                        color={item.color || '#5D4037'}
+                                        color={item.color || colors.text}
                                     />
                                     <Text style={[
                                         styles.menuItemText,
-                                        item.color && { color: item.color }
+                                        { color: item.color || colors.text }
                                     ]}>
                                         {item.label}
                                     </Text>
@@ -158,9 +160,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         paddingTop: 50, // Increased top padding for status bar
         paddingBottom: 20,
-        backgroundColor: '#FFF',
+        paddingBottom: 20,
+        // backgroundColor: '#FFF', set dynamically
         borderBottomWidth: 1,
-        borderBottomColor: '#F5E6D8',
+        // borderBottomColor: '#F5E6D8', set dynamically
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -106,7 +106,7 @@ export default function CheckoutScreen() {
                 quantity: item.quantity
             }));
 
-            const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://10.133.149.41:3000';
+            const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://10.83.39.41:3000';
             console.log('Sending payment request to:', `${apiUrl}/api/payments/charge`);
 
             // Procesar pago con Culqi

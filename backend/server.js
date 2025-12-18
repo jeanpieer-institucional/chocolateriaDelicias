@@ -37,5 +37,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Local: http://localhost:${PORT}`);
-    console.log(`Network: http://10.133.149.41:${PORT}`);
+    console.log(`Network: http://10.83.39.41:${PORT}`);
 });

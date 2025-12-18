@@ -14,11 +14,13 @@ import {
 } from 'react-native';
 import { useAddress } from '../../context/AddressContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function AddressManagementScreen() {
     const router = useRouter();
     const { addresses, loading, createAddress, updateAddress, deleteAddress, setDefaultAddress } = useAddress();
     const { user } = useAuth();
+    const { colors } = useTheme();
 
     const [showModal, setShowModal] = useState(false);
     const [editingAddress, setEditingAddress] = useState<any>(null);
@@ -114,19 +116,19 @@ export default function AddressManagementScreen() {
 
     if (!user) {
         return (
-            <View style={styles.container}>
-                <View style={styles.header}>
+            <View style={[styles.container, { backgroundColor: colors.background }]}>
+                <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#5D4037" />
+                        <Ionicons name="arrow-back" size={24} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Mis Direcciones</Text>
-                    <View style={{ width: 24 }} />
+                    <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Direcciones</Text>
+                    <View style={styles.headerSpacer} />
                 </View>
                 <View style={styles.emptyContainer}>
-                    <Ionicons name="person-outline" size={80} color="#D7CCC8" />
-                    <Text style={styles.emptyText}>Debes iniciar sesión para ver tus direcciones</Text>
+                    <Ionicons name="person-outline" size={80} color={colors.tabIconDefault} />
+                    <Text style={[styles.emptyText, { color: colors.text }]}>Debes iniciar sesión para ver tus direcciones</Text>
                     <TouchableOpacity
-                        style={styles.emptyButton}
+                        style={[styles.emptyButton, { backgroundColor: colors.primary }]}
                         onPress={() => router.push('/(auth)/login')}
                     >
                         <Text style={styles.emptyButtonText}>Iniciar Sesión</Text>
@@ -137,72 +139,72 @@ export default function AddressManagementScreen() {
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#5D4037" />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Mis Direcciones</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Direcciones</Text>
                 <TouchableOpacity onPress={handleAddNew} style={styles.addButton}>
-                    <Ionicons name="add" size={24} color="#8B4513" />
+                    <Ionicons name="add" size={24} color={colors.primary} />
                 </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {loading ? (
-                    <ActivityIndicator size="large" color="#8B4513" style={{ marginTop: 50 }} />
+                    <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
                 ) : addresses.length === 0 ? (
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="location-outline" size={80} color="#D7CCC8" />
-                        <Text style={styles.emptyText}>No tienes direcciones guardadas</Text>
-                        <TouchableOpacity style={styles.emptyButton} onPress={handleAddNew}>
+                        <Ionicons name="location-outline" size={80} color={colors.tabIconDefault} />
+                        <Text style={[styles.emptyText, { color: colors.text }]}>No tienes direcciones guardadas</Text>
+                        <TouchableOpacity style={[styles.emptyButton, { backgroundColor: colors.primary }]} onPress={handleAddNew}>
                             <Text style={styles.emptyButtonText}>Agregar Primera Dirección</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
                     addresses.map((address) => (
-                        <View key={address.id} style={styles.addressCard}>
+                        <View key={address.id} style={[styles.addressCard, { backgroundColor: colors.card }]}>
                             {address.is_default && (
-                                <View style={styles.defaultBadge}>
+                                <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
                                     <Ionicons name="star" size={12} color="#FFF" />
                                     <Text style={styles.defaultBadgeText}>Predeterminada</Text>
                                 </View>
                             )}
 
                             <View style={styles.addressInfo}>
-                                <Text style={styles.addressName}>{address.name}</Text>
-                                <Text style={styles.addressPhone}>{address.phone}</Text>
-                                <Text style={styles.addressText}>{address.address_line1}</Text>
+                                <Text style={[styles.addressName, { color: colors.text }]}>{address.name}</Text>
+                                <Text style={[styles.addressPhone, { color: colors.tabIconDefault }]}>{address.phone}</Text>
+                                <Text style={[styles.addressText, { color: colors.tabIconDefault }]}>{address.address_line1}</Text>
                                 {address.address_line2 && (
-                                    <Text style={styles.addressText}>{address.address_line2}</Text>
+                                    <Text style={[styles.addressText, { color: colors.tabIconDefault }]}>{address.address_line2}</Text>
                                 )}
                             </View>
 
                             <View style={styles.addressActions}>
                                 {!address.is_default && (
                                     <TouchableOpacity
-                                        style={styles.actionButton}
+                                        style={[styles.actionButton, { backgroundColor: colors.background }]}
                                         onPress={() => handleSetDefault(address)}
                                     >
-                                        <Ionicons name="star-outline" size={20} color="#8B4513" />
-                                        <Text style={styles.actionButtonText}>Predeterminada</Text>
+                                        <Ionicons name="star-outline" size={20} color={colors.primary} />
+                                        <Text style={[styles.actionButtonText, { color: colors.primary }]}>Predeterminada</Text>
                                     </TouchableOpacity>
                                 )}
 
                                 <TouchableOpacity
-                                    style={styles.actionButton}
+                                    style={[styles.actionButton, { backgroundColor: colors.background }]}
                                     onPress={() => handleEdit(address)}
                                 >
-                                    <Ionicons name="create-outline" size={20} color="#8B4513" />
-                                    <Text style={styles.actionButtonText}>Editar</Text>
+                                    <Ionicons name="create-outline" size={20} color={colors.primary} />
+                                    <Text style={[styles.actionButtonText, { color: colors.primary }]}>Editar</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.actionButton}
+                                    style={[styles.actionButton, { backgroundColor: colors.background }]}
                                     onPress={() => handleDelete(address)}
                                 >
-                                    <Ionicons name="trash-outline" size={20} color="#FF5252" />
-                                    <Text style={[styles.actionButtonText, { color: '#FF5252' }]}>Eliminar</Text>
+                                    <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                                    <Text style={[styles.actionButtonText, { color: colors.danger }]}>Eliminar</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -221,9 +223,9 @@ export default function AddressManagementScreen() {
                 }}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>
+                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+                            <Text style={[styles.modalTitle, { color: colors.text }]}>
                                 {editingAddress ? 'Editar Dirección' : 'Nueva Dirección'}
                             </Text>
                             <TouchableOpacity
@@ -232,40 +234,44 @@ export default function AddressManagementScreen() {
                                     resetForm();
                                 }}
                             >
-                                <Ionicons name="close" size={28} color="#5D4037" />
+                                <Ionicons name="close" size={28} color={colors.text} />
                             </TouchableOpacity>
                         </View>
 
                         <ScrollView style={styles.modalScroll}>
-                            <Text style={styles.label}>Nombre del destinatario *</Text>
+                            <Text style={[styles.label, { color: colors.text }]}>Nombre del destinatario *</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
                                 placeholder="Ej: Juan Pérez"
+                                placeholderTextColor={colors.placeholder || '#A1887F'}
                                 value={formData.name}
                                 onChangeText={(text) => setFormData({ ...formData, name: text })}
                             />
 
-                            <Text style={styles.label}>Teléfono *</Text>
+                            <Text style={[styles.label, { color: colors.text }]}>Teléfono *</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
                                 placeholder="Ej: 987654321"
+                                placeholderTextColor={colors.placeholder || '#A1887F'}
                                 keyboardType="phone-pad"
                                 value={formData.phone}
                                 onChangeText={(text) => setFormData({ ...formData, phone: text })}
                             />
 
-                            <Text style={styles.label}>Dirección *</Text>
+                            <Text style={[styles.label, { color: colors.text }]}>Dirección *</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
                                 placeholder="Ej: Av. Principal 123"
+                                placeholderTextColor={colors.placeholder || '#A1887F'}
                                 value={formData.address_line1}
                                 onChangeText={(text) => setFormData({ ...formData, address_line1: text })}
                             />
 
-                            <Text style={styles.label}>Depto, piso, referencia (opcional)</Text>
+                            <Text style={[styles.label, { color: colors.text }]}>Depto, piso, referencia (opcional)</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
                                 placeholder="Ej: Depto 301, edificio azul"
+                                placeholderTextColor={colors.placeholder || '#A1887F'}
                                 value={formData.address_line2}
                                 onChangeText={(text) => setFormData({ ...formData, address_line2: text })}
                             />
@@ -277,12 +283,12 @@ export default function AddressManagementScreen() {
                                 <Ionicons
                                     name={formData.is_default ? "checkbox" : "square-outline"}
                                     size={24}
-                                    color="#8B4513"
+                                    color={colors.primary}
                                 />
-                                <Text style={styles.checkboxLabel}>Establecer como dirección predeterminada</Text>
+                                <Text style={[styles.checkboxLabel, { color: colors.text }]}>Establecer como dirección predeterminada</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }]} onPress={handleSave}>
                                 <Text style={styles.saveButtonText}>
                                     {editingAddress ? 'Actualizar Dirección' : 'Guardar Dirección'}
                                 </Text>
@@ -321,6 +327,9 @@ const styles = StyleSheet.create({
     },
     addButton: {
         padding: 5,
+    },
+    headerSpacer: {
+        width: 24,
     },
     content: {
         flex: 1,

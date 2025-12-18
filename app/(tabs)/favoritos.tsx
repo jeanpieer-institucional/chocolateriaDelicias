@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../../components/AppHeader';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Favoritos() {
     const { favorites, removeFromFavorites } = useFavorites();
     const { addToCart } = useCart();
+    const { colors } = useTheme();
 
     const renderItem = ({ item }: { item: any }) => (
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.card }]}>
             <View style={styles.imageContainer}>
                 {item.foto ? (
                     <Image source={item.foto} style={styles.image} />
@@ -21,11 +22,11 @@ export default function Favoritos() {
                 )}
             </View>
             <View style={styles.infoContainer}>
-                <Text style={styles.name}>{item.nombre || item.name}</Text>
-                <Text style={styles.price}>{item.precio}</Text>
+                <Text style={[styles.name, { color: colors.text }]}>{item.nombre || item.name}</Text>
+                <Text style={[styles.price, { color: colors.primary }]}>{item.precio}</Text>
                 <View style={styles.actions}>
                     <TouchableOpacity
-                        style={styles.cartButton}
+                        style={[styles.cartButton, { backgroundColor: colors.primary }]}
                         onPress={() => addToCart(item)}
                     >
                         <Ionicons name="cart-outline" size={20} color="#FFF" />
@@ -35,7 +36,7 @@ export default function Favoritos() {
                         style={styles.removeButton}
                         onPress={() => removeFromFavorites(item.id)}
                     >
-                        <Ionicons name="trash-outline" size={20} color="#FF5252" />
+                        <Ionicons name="trash-outline" size={20} color={colors.danger} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -43,18 +44,18 @@ export default function Favoritos() {
     );
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             <AppHeader />
-            <View style={styles.header}>
-                <Text style={styles.title}>Mis Favoritos ❤️</Text>
-                <Text style={styles.subtitle}>Tus productos guardados</Text>
+            <View style={[styles.header, { backgroundColor: colors.card }]}>
+                <Text style={[styles.title, { color: colors.text }]}>Mis Favoritos ❤️</Text>
+                <Text style={[styles.subtitle, { color: colors.tabIconDefault }]}>Tus productos guardados</Text>
             </View>
 
             {favorites.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                    <Ionicons name="heart-dislike-outline" size={80} color="#D7CCC8" />
-                    <Text style={styles.emptyText}>No tienes favoritos aún</Text>
-                    <Text style={styles.emptySubtext}>Explora nuestros productos y guarda los que más te gusten</Text>
+                    <Ionicons name="heart-dislike-outline" size={80} color={colors.tabIconDefault} />
+                    <Text style={[styles.emptyText, { color: colors.text }]}>No tienes favoritos aún</Text>
+                    <Text style={[styles.emptySubtext, { color: colors.tabIconDefault }]}>Explora nuestros productos y guarda los que más te gusten</Text>
                 </View>
             ) : (
                 <FlatList

@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 // IMPORTANTE: Para Expo Go o dispositivo físico, usa tu IP local
 // Para emulador de Android, usa 10.0.2.2
 // Para simulador de iOS, usa localhost
-const LOCAL_IP = /* '10.133.149.41' */ '10.133.149.41';
+const LOCAL_IP = /* '10.133.149.41' */ '10.83.39.41';
 
 // Detectar si estamos en Expo Go o en un build nativo
 const getBaseURL = () => {
@@ -54,7 +54,7 @@ api.interceptors.response.use(
         console.log('✅ API Response:', response.status, response.config.url);
         return response;
     },
-    (error) => {
+    async (error) => {
         if (error.code === 'ECONNABORTED') {
             console.error('⏱️ Request timeout - el servidor no responde');
         } else if (error.message === 'Network Error') {
@@ -63,6 +63,25 @@ api.interceptors.response.use(
             console.error('Base URL:', BASE_URL);
         } else if (error.response) {
             console.error('❌ API Error:', error.response.status, error.response.data);
+
+            // Manejar errores 401 (Token inválido o expirado)
+            if (error.response.status === 401) {
+                console.log('🔐 Token inválido o expirado - cerrando sesión...');
+
+                // Importar AsyncStorage para limpiar la sesión
+                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+
+                try {
+                    await AsyncStorage.removeItem('user');
+                    await AsyncStorage.removeItem('token');
+                    console.log('✅ Sesión cerrada automáticamente');
+
+                    // Nota: El AuthContext detectará el cambio en el próximo render
+                    // y redirigirá al usuario a la pantalla de login
+                } catch (clearError) {
+                    console.error('Error al limpiar sesión:', clearError);
+                }
+            }
         }
         return Promise.reject(error);
     }
