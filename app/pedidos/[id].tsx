@@ -1,6 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import AppHeader from '../../components/AppHeader';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../constants/DesignSystem';
 import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/api';
 
@@ -30,17 +34,19 @@ export default function OrderDetails() {
 
     const getStatusColor = (status: string) => {
         switch (status?.toLowerCase()) {
-            case 'completed': return '#4CAF50';
-            case 'pending': return '#FF9800';
-            case 'cancelled': return '#F44336';
-            default: return '#8D6E63';
+            case 'completed': return Colors.status.success;
+            case 'pending': return Colors.status.warning;
+            case 'cancelled': return Colors.status.error;
+            case 'processing': return Colors.status.info;
+            default: return Colors.text.secondary;
         }
     };
 
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#8B4513" />
+                <ActivityIndicator size="large" color={Colors.primary.main} />
+                <Text style={styles.loadingText}>Cargando detalles...</Text>
             </View>
         );
     }
@@ -48,7 +54,9 @@ export default function OrderDetails() {
     if (!order) {
         return (
             <View style={styles.container}>
+                <AppHeader />
                 <View style={styles.errorContainer}>
+                    <Ionicons name="alert-circle-outline" size={60} color={Colors.status.error} />
                     <Text style={styles.errorText}>Pedido no encontrado</Text>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                         <Text style={styles.backButtonText}>Volver</Text>
@@ -60,54 +68,118 @@ export default function OrderDetails() {
 
     return (
         <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <AppHeader />
 
-                <View style={styles.statusCard}>
-                    <View style={styles.statusRow}>
-                        <Text style={styles.label}>Estado:</Text>
-                        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) }]}>
-                            <Text style={styles.statusText}>{order.status}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.statusRow}>
-                        <Text style={styles.label}>Fecha:</Text>
-                        <Text style={styles.value}>
-                            {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString()}
-                        </Text>
-                    </View>
-                </View>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
+                    <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
+                </TouchableOpacity>
+                <Text style={styles.title}>Detalles del Pedido #{id}</Text>
+            </View>
 
-                <Text style={styles.sectionTitle}>Productos</Text>
-                <View style={styles.productsList}>
-                    {order.items?.map((item: any, index: number) => (
-                        <View key={index} style={styles.productItem}>
-                            <View style={styles.productInfo}>
-                                <Text style={styles.productName}>
-                                    {item.product?.name || item.product_name || 'Producto'}
-                                </Text>
-                                <Text style={styles.productQuantity}>Cantidad: {item.quantity}</Text>
-                            </View>
-                            <Text style={styles.productPrice}>
-                                S/ {item.price}
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+                <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.statusCard}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons name="information-circle-outline" size={20} color={Colors.primary.main} />
+                        <Text style={styles.cardTitle}>Información</Text>
+                    </View>
+                    <View style={styles.divider} />
+
+                    <View style={styles.infoRow}>
+                        <Text style={styles.label}>Estado</Text>
+                        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+                            <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+                                {order.status}
                             </Text>
                         </View>
-                    ))}
-                </View>
+                    </View>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.label}>Fecha</Text>
+                        <Text style={styles.value}>
+                            {new Date(order.created_at).toLocaleDateString()}
+                        </Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.label}>Hora</Text>
+                        <Text style={styles.value}>
+                            {new Date(order.created_at).toLocaleTimeString()}
+                        </Text>
+                    </View>
+                </Animated.View>
 
-                <View style={styles.summaryCard}>
+                <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.productsSection}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons name="cube-outline" size={20} color={Colors.primary.main} />
+                        <Text style={styles.cardTitle}>Productos</Text>
+                    </View>
+                    <View style={styles.divider} />
+
+                    <View style={styles.productsList}>
+                        {order.items?.map((item: any, index: number) => (
+                            <View key={index} style={styles.productItem}>
+                                <View style={styles.productInfo}>
+                                    <Text style={styles.productName}>
+                                        {item.product?.name || item.product_name || 'Producto'}
+                                    </Text>
+                                    <Text style={styles.productQuantity}>Cantidad: {item.quantity}</Text>
+                                </View>
+                                <Text style={styles.productPrice}>
+                                    S/ {parseFloat(item.price).toFixed(2)}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                </Animated.View>
+
+                <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.summaryCard}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons name="receipt-outline" size={20} color={Colors.primary.main} />
+                        <Text style={styles.cardTitle}>Resumen de Pago</Text>
+                    </View>
+                    <View style={styles.divider} />
+
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Subtotal</Text>
-                        <Text style={styles.summaryValue}>S/ {order.total}</Text>
+                        <Text style={styles.summaryValue}>S/ {parseFloat(order.total).toFixed(2)}</Text>
                     </View>
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Envío</Text>
                         <Text style={styles.summaryValue}>S/ 0.00</Text>
                     </View>
-                    <View style={[styles.summaryRow, styles.totalRow]}>
-                        <Text style={styles.totalLabel}>Total</Text>
-                        <Text style={styles.totalValue}>S/ {order.total}</Text>
+
+                    <View style={styles.dashDivider} />
+
+                    <View style={styles.totalRow}>
+                        <Text style={styles.totalLabel}>Total Pagado</Text>
+                        <Text style={styles.totalValue}>S/ {parseFloat(order.total).toFixed(2)}</Text>
                     </View>
-                </View>
+                </Animated.View>
+
+                {/* Tracking Steps Visual */}
+                <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.trackingCard}>
+                    <Text style={styles.cardTitle}>Seguimiento</Text>
+                    <View style={styles.divider} />
+
+                    <View style={styles.timeline}>
+                        <View style={styles.timelineItem}>
+                            <View style={[styles.timelineDot, { backgroundColor: Colors.primary.main }]} />
+                            <View style={[styles.timelineLine, { backgroundColor: Colors.primary.main }]} />
+                            <Text style={[styles.timelineText, { color: Colors.primary.main }]}>Pedido Recibido</Text>
+                        </View>
+                        <View style={styles.timelineItem}>
+                            <View style={[styles.timelineDot, { backgroundColor: order.status !== 'pending' ? Colors.primary.main : Colors.dark.surface, borderColor: Colors.primary.main, borderWidth: 2 }]} />
+                            <View style={[styles.timelineLine, { backgroundColor: order.status === 'completed' ? Colors.primary.main : Colors.dark.surface }]} />
+                            <Text style={[styles.timelineText, { color: order.status !== 'pending' ? Colors.text.primary : Colors.text.disabled }]}>Procesando</Text>
+                        </View>
+                        <View style={styles.timelineItem}>
+                            <View style={[styles.timelineDot, { backgroundColor: order.status === 'completed' ? Colors.primary.main : Colors.dark.surface, borderColor: Colors.primary.main, borderWidth: 2 }]} />
+                            <Text style={[styles.timelineText, { color: order.status === 'completed' ? Colors.text.primary : Colors.text.disabled }]}>Entregado</Text>
+                        </View>
+                    </View>
+                </Animated.View>
+
+                <View style={{ height: Spacing.xxxl }} />
             </ScrollView>
         </View>
     );
@@ -116,169 +188,220 @@ export default function OrderDetails() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
-    scrollContent: {
-        padding: 20,
+    loadingText: {
+        marginTop: Spacing.md,
+        color: Colors.text.secondary,
+        fontSize: Typography.sizes.bodySmall,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.lg,
     },
     headerBackButton: {
-        marginRight: 15,
-        padding: 5,
+        marginRight: Spacing.md,
+        padding: Spacing.xs,
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#5D4037',
+        fontSize: Typography.sizes.h4,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
+    },
+    scrollContent: {
+        padding: Spacing.xl,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        marginBottom: Spacing.md,
+    },
+    cardTitle: {
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: Colors.border.default,
+        marginBottom: Spacing.md,
+    },
+    dashDivider: {
+        height: 1,
+        borderWidth: 1,
+        borderColor: Colors.border.default,
+        borderStyle: 'dashed',
+        marginVertical: Spacing.md,
     },
     statusCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 15,
-        padding: 15,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
+        ...Shadows.medium,
     },
-    statusRow: {
+    infoRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: Spacing.sm,
     },
     label: {
-        fontSize: 16,
-        color: '#8D6E63',
-        fontWeight: '500',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
     },
     value: {
-        fontSize: 16,
-        color: '#5D4037',
-        fontWeight: 'bold',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.semibold,
     },
     statusBadge: {
-        paddingHorizontal: 12,
+        paddingHorizontal: Spacing.sm,
         paddingVertical: 4,
-        borderRadius: 12,
+        borderRadius: BorderRadius.sm,
     },
     statusText: {
-        color: '#FFF',
-        fontWeight: 'bold',
-        fontSize: 14,
+        fontWeight: Typography.weights.bold,
+        fontSize: Typography.sizes.caption,
+        textTransform: 'uppercase',
     },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginBottom: 15,
+    productsSection: {
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
+        ...Shadows.medium,
     },
     productsList: {
-        backgroundColor: '#FFF',
-        borderRadius: 15,
-        padding: 15,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        gap: Spacing.md,
     },
     productItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F5E6D8',
     },
     productInfo: {
         flex: 1,
+        marginRight: Spacing.md,
     },
     productName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#5D4037',
-        marginBottom: 4,
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.semibold,
+        color: Colors.text.primary,
+        marginBottom: 2,
     },
     productQuantity: {
-        fontSize: 14,
-        color: '#8D6E63',
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
     },
     productPrice: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#5D4037',
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
+        color: Colors.primary.main,
     },
     summaryCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 15,
-        padding: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
+        ...Shadows.medium,
     },
     summaryRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 10,
+        marginBottom: Spacing.xs,
     },
     summaryLabel: {
-        fontSize: 16,
-        color: '#8D6E63',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
     },
     summaryValue: {
-        fontSize: 16,
-        color: '#5D4037',
-        fontWeight: '600',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.semibold,
     },
     totalRow: {
-        marginTop: 10,
-        paddingTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#F5E6D8',
-        marginBottom: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     totalLabel: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#5D4037',
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
     },
     totalValue: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#8B4513',
+        fontSize: Typography.sizes.h4,
+        fontWeight: Typography.weights.extrabold,
+        color: Colors.primary.main,
+    },
+    trackingCard: {
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
+        ...Shadows.medium,
+    },
+    timeline: {
+        marginLeft: Spacing.sm,
+    },
+    timelineItem: {
+        marginTop: Spacing.xs,
+        marginBottom: Spacing.xl,
+        position: 'relative',
+        paddingLeft: Spacing.xl,
+    },
+    timelineDot: {
+        width: 12,
+        height: 12,
+        borderRadius: BorderRadius.circle,
+        position: 'absolute',
+        left: 0,
+        top: 4,
+        zIndex: 1,
+    },
+    timelineLine: {
+        width: 2,
+        height: 40,
+        position: 'absolute',
+        left: 5,
+        top: 16,
+        zIndex: 0,
+    },
+    timelineText: {
+        fontSize: Typography.sizes.bodySmall,
+        fontWeight: Typography.weights.semibold,
     },
     errorContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        padding: Spacing.xxxl,
     },
     errorText: {
-        fontSize: 18,
-        color: '#8D6E63',
-        marginBottom: 20,
+        fontSize: Typography.sizes.h5,
+        color: Colors.text.secondary,
+        marginVertical: Spacing.lg,
+        fontWeight: Typography.weights.medium,
     },
     backButton: {
-        padding: 10,
-        backgroundColor: '#8B4513',
-        borderRadius: 8,
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.md,
+        backgroundColor: Colors.primary.main,
+        borderRadius: BorderRadius.xxxl,
     },
     backButtonText: {
-        color: '#FFF',
-        fontWeight: 'bold',
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.bold,
+        fontSize: Typography.sizes.body,
     },
 });

@@ -1,266 +1,319 @@
-import { Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-
-const CARD_WIDTH = Dimensions.get("window").width * 0.28;
-const SCREEN_WIDTH = Dimensions.get("window").width;
-
-const ofertas = [
-    {
-        texto: '¡Caja de Bombones gourmet - 15% Dcto!',
-        foto: require('../../assets/images/bombones.png'),
-        color: '#8B4513'
-    },
-    {
-        texto: 'Tabletas premium 2x1 este mes',
-        foto: require('../../assets/images/tabletas.png'),
-        color: '#A0522D'
-    },
-    {
-        texto: 'Regalos y cajas: Envío gratis',
-        foto: require('../../assets/images/regalos.png'),
-        color: '#CD853F'
-    }
-]
-
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import AppHeader from '../../components/AppHeader';
-import { useTheme } from '../context/ThemeContext';
+import CategoryChip from '../../components/CategoryChip';
+import DarkSearchBar from '../../components/DarkSearchBar';
+import ProductCard from '../../components/ProductCard';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../constants/DesignSystem';
+import { getProductImage } from '../../constants/productImages';
+import { useCart } from '../context/CartContext';
+import { useFavorites } from '../context/FavoritesContext';
+import { productService } from '../services/api';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
+const novedades = [
+    {
+        id: 1,
+        titulo: 'Colección Otoño',
+        descripcion: 'Sabores cálidos de avellana, canela y especias para esta temporada.',
+        imagen: require('../../assets/images/tabletas.png'),
+        badge: 'NUEVO',
+        badgeColor: Colors.badge.new,
+    },
+    {
+        id: 2,
+        titulo: 'Cajas Regalo',
+        descripcion: 'El detalle perfecto para tus seres queridos. Dulzura en cada bocado.',
+        imagen: require('../../assets/images/regalos.png'),
+        badge: 'OFERTA',
+        badgeColor: Colors.badge.offer,
+    },
+];
 
 export default function Inicio() {
-    const { colors } = useTheme();
+    const router = useRouter();
+    const [selectedCategory, setSelectedCategory] = useState('Todo');
+    const [searchText, setSearchText] = useState('');
+    const [categories, setCategories] = useState<string[]>(['Todo']);
+    const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+    const { addToCart } = useCart();
+    const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
+
+    const isFavorite = (id: number) => favorites.some(fav => fav.id === id);
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            // Cargar categorías
+            const catResponse = await productService.getCategories();
+            const rawCategories = catResponse.data || [];
+
+            // Procesar nombres de categorías (primera palabra)
+            const processedCategories = rawCategories.map((cat: any) => {
+                const name = cat.name || cat.nombre || '';
+                return name.split(' ')[0]; // Tomar solo la primera palabra
+            });
+
+            // Eliminar duplicados y agregar 'Todo' al principio
+            const uniqueCategories = ['Todo', ...new Set(processedCategories)] as string[];
+            setCategories(uniqueCategories);
+
+            // Cargar productos para "Más Vendidos" (simulado con los primeros productos)
+            const prodResponse = await productService.getAllProducts();
+            const products = prodResponse.data || [];
+
+            // Formatear productos
+            const formattedProducts = products.slice(0, 5).map((prod: any) => ({
+                id: prod.id,
+                nombre: prod.name,
+                descripcion: prod.description || 'Chocolate premium',
+                precio: `S/ ${prod.price}`,
+                foto: getProductImage(prod.name, prod.image),
+            }));
+
+            setFeaturedProducts(formattedProducts);
+
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+    };
+
+    const toggleFavorite = (product: any) => {
+        if (isFavorite(product.id)) {
+            removeFromFavorites(product.id);
+        } else {
+            addToFavorites(product);
+        }
+    };
 
     return (
-        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
             <AppHeader />
-            {/* Header con gradiente */}
-            <View style={styles.header}>
-                <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80' }}
-                    style={styles.logo}
-                />
-                <Text style={styles.title}>Bienvenidos a ChocoDelicias</Text>
-                <Text style={styles.desc}>Chocolatería artesanal para disfrutar y regalar sabores</Text>
-            </View>
 
-            {/* Sección de ofertas */}
-            <View style={styles.ofertasSection}>
-                <View style={styles.sectionHeader}>
-                    <Text style={[styles.bannerTitle, { color: colors.text }]}>Ofertas del Mes</Text>
-                    <View style={styles.titleUnderline}></View>
-                </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* SearchBar - Directamente después del header */}
+                <Animated.View
+                    entering={FadeInDown.delay(100).duration(600)}
+                    style={styles.searchContainer}
+                >
+                    <DarkSearchBar onSearch={setSearchText} />
+                </Animated.View>
 
-                <View style={styles.bannerRow}>
-                    {ofertas.map((item, idx) => (
-                        <View key={idx} style={[styles.bannerCard, { borderTopColor: item.color, backgroundColor: colors.card }]}>
-                            <View style={styles.imageContainer}>
-                                {item.foto && (
-                                    <Image source={item.foto} style={styles.bannerImg} resizeMode='contain' />
-                                )}
-                            </View>
-                            <Text style={[styles.bannerText, { color: colors.text }]}>{item.texto}</Text>
-                            <View style={[styles.promoBadge, { backgroundColor: item.color }]}>
-                                <Text style={styles.promoBadgeText}>PROMO</Text>
-                            </View>
-                        </View>
-                    ))}
-                </View>
-            </View>
+                {/* Chips de categorías */}
+                <Animated.View
+                    entering={FadeInDown.delay(200).duration(600)}
+                    style={styles.categoriesWrapper}
+                >
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.categoriesContainer}
+                    >
+                        {categories.map((cat, index) => (
+                            <CategoryChip
+                                key={`${cat}-${index}`}
+                                label={cat}
+                                selected={selectedCategory === cat}
+                                onPress={() => setSelectedCategory(cat)}
+                            />
+                        ))}
+                    </ScrollView>
+                </Animated.View>
 
-            {/* Sección adicional */}
-            <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
-                <Text style={[styles.infoTitle, { color: colors.text }]}>🍫 Chocolate Artesanal</Text>
-                <Text style={[styles.infoText, { color: colors.text }]}>
-                    Descubre nuestra exclusiva selección de chocolates elaborados
-                    con los mejores ingredientes y mucho amor.
-                </Text>
-
-                <View style={styles.featuresRow}>
-                    <View style={styles.featureItem}>
-                        <Text style={styles.featureIcon}>🚚</Text>
-                        <Text style={[styles.featureText, { color: colors.primary }]}>Envío Rápido</Text>
+                {/* Sección Novedades */}
+                <Animated.View
+                    entering={FadeInDown.delay(300).duration(600)}
+                    style={styles.section}
+                >
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Novedades</Text>
+                        <TouchableOpacity onPress={() => router.push('/(tabs)/productos')}>
+                            <Text style={styles.seeAll}>Ver todo</Text>
+                        </TouchableOpacity>
                     </View>
-                    <View style={styles.featureItem}>
-                        <Text style={styles.featureIcon}>⭐</Text>
-                        <Text style={[styles.featureText, { color: colors.primary }]}>Calidad Premium</Text>
+
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.novedadesContainer}
+                    >
+                        {novedades.map((item, index) => (
+                            <Animated.View
+                                key={item.id}
+                                entering={FadeInDown.delay(400 + index * 100).duration(600)}
+                            >
+                                <TouchableOpacity style={styles.novedadCard} activeOpacity={0.9}>
+                                    <Image source={item.imagen} style={styles.novedadImage} />
+                                    <View style={styles.novedadOverlay}>
+                                        <View style={[styles.badge, { backgroundColor: item.badgeColor }]}>
+                                            <Text style={styles.badgeText}>{item.badge}</Text>
+                                        </View>
+                                        <View style={styles.novedadInfo}>
+                                            <Text style={styles.novedadTitulo}>{item.titulo}</Text>
+                                            <Text style={styles.novedadDescripcion}>{item.descripcion}</Text>
+                                            <TouchableOpacity
+                                                style={styles.explorarButton}
+                                                onPress={() => router.push('/(tabs)/productos')}
+                                            >
+                                                <Text style={styles.explorarText}>Explorar</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            </Animated.View>
+                        ))}
+                    </ScrollView>
+                </Animated.View>
+
+                {/* Sección Más Vendidos */}
+                <Animated.View
+                    entering={FadeInDown.delay(500).duration(600)}
+                    style={styles.section}
+                >
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Más Vendidos</Text>
+                        <TouchableOpacity onPress={() => router.push('/(tabs)/productos')}>
+                            <Text style={styles.seeAll}>Ver todo</Text>
+                        </TouchableOpacity>
                     </View>
-                    <View style={styles.featureItem}>
-                        <Text style={styles.featureIcon}>🎁</Text>
-                        <Text style={[styles.featureText, { color: colors.primary }]}>Regalos Especiales</Text>
-                    </View>
-                </View>
-            </View>
-        </ScrollView>
+
+                    <ScrollView // Cambiado a ScrollView horizontal para mejor performance
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.productsContainer}
+                    >
+                        {featuredProducts.map((item, index) => (
+                            <Animated.View
+                                key={item.id}
+                                entering={FadeInDown.delay(600 + index * 50).duration(600)}
+                                style={{ marginRight: Spacing.md }}
+                            >
+                                <ProductCard
+                                    name={item.nombre}
+                                    description={item.descripcion}
+                                    price={item.precio}
+                                    image={item.foto}
+                                    isFavorite={isFavorite(item.id)}
+                                    onFavoritePress={() => toggleFavorite(item)}
+                                    onAddPress={() => addToCart(item)}
+                                    onPress={() => router.push(`/producto/${item.id}`)}
+                                />
+                            </Animated.View>
+                        ))}
+                    </ScrollView>
+                </Animated.View>
+
+                {/* Espaciado final */}
+                <View style={{ height: Spacing.xxxl }} />
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
-    header: {
-        backgroundColor: 'linear-gradient(135deg, #8B4513, #D2691E)',
-        alignItems: 'center',
-        paddingVertical: 40,
-        paddingHorizontal: 20,
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-        elevation: 8,
+    searchContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.md,
+        marginBottom: Spacing.lg,
     },
-    logo: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        borderWidth: 3,
-        borderColor: '#FFF',
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
+    categoriesWrapper: {
+        marginBottom: Spacing.lg,
     },
-    title: {
-        fontSize: 26,
-        fontWeight: 'bold',
-        color: '#FFF',
-        textAlign: 'center',
-        marginBottom: 8,
-        textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
+    categoriesContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingBottom: Spacing.sm,
     },
-    desc: {
-        fontSize: 16,
-        color: '#FFF8F0',
-        textAlign: 'center',
-        lineHeight: 22,
-        fontWeight: '500',
-    },
-    ofertasSection: {
-        paddingVertical: 30,
-        paddingHorizontal: 20,
+    section: {
+        marginBottom: Spacing.xl,
     },
     sectionHeader: {
-        alignItems: 'center',
-        marginBottom: 25,
-    },
-    bannerTitle: {
-        fontSize: 24,
-        color: '#5D4037',
-        fontWeight: 'bold',
-        marginBottom: 8,
-    },
-    titleUnderline: {
-        width: 60,
-        height: 4,
-        backgroundColor: '#D2691E',
-        borderRadius: 2,
-    },
-    bannerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'stretch',
-        gap: 12,
-    },
-    bannerCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 20,
         alignItems: 'center',
-        padding: 16,
-        width: CARD_WIDTH,
-        minHeight: 180,
-        shadowColor: '#000',
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 6,
-        borderTopWidth: 4,
-        position: 'relative',
-        justifyContent: 'space-between',
+        paddingHorizontal: Spacing.xl,
+        marginBottom: Spacing.lg,
     },
-    imageContainer: {
-        width: 70,
-        height: 70,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
+    sectionTitle: {
+        fontSize: Typography.sizes.h4,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
     },
-    bannerImg: {
+    seeAll: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.primary.main,
+        fontWeight: Typography.weights.semibold,
+    },
+    novedadesContainer: {
+        paddingHorizontal: Spacing.xl,
+    },
+    novedadCard: {
+        width: SCREEN_WIDTH * 0.7,
+        height: 200,
+        borderRadius: BorderRadius.lg,
+        overflow: 'hidden',
+        marginRight: Spacing.lg,
+        ...Shadows.medium,
+    },
+    novedadImage: {
         width: '100%',
         height: '100%',
-        borderRadius: 12,
-    },
-    bannerText: {
-        fontSize: 13,
-        color: '#5D4037',
-        textAlign: 'center',
-        fontWeight: '600',
-        lineHeight: 18,
-        flex: 1,
-    },
-    promoBadge: {
         position: 'absolute',
-        top: -10,
-        right: -5,
-        backgroundColor: '#8B4513',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-        elevation: 3,
     },
-    promoBadgeText: {
-        color: '#FFF',
-        fontSize: 10,
-        fontWeight: 'bold',
+    novedadOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(13, 31, 26, 0.5)',
+        justifyContent: 'space-between',
+        padding: Spacing.lg,
     },
-    infoSection: {
-        backgroundColor: '#FFF',
-        margin: 20,
-        padding: 25,
-        borderRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 5,
+    badge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.xs,
+        borderRadius: BorderRadius.sm,
     },
-    infoTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginBottom: 12,
-        textAlign: 'center',
+    badgeText: {
+        fontSize: Typography.sizes.tiny,
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.extrabold,
+        letterSpacing: 0.5,
     },
-    infoText: {
-        fontSize: 15,
-        color: '#7E6B5A',
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 20,
+    novedadInfo: {
+        gap: Spacing.xs,
     },
-    featuresRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginTop: 10,
+    novedadTitulo: {
+        fontSize: Typography.sizes.h4,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
     },
-    featureItem: {
-        alignItems: 'center',
+    novedadDescripcion: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
+        lineHeight: Typography.lineHeights.normal * Typography.sizes.caption,
     },
-    featureIcon: {
-        fontSize: 24,
-        marginBottom: 6,
+    explorarButton: {
+        backgroundColor: Colors.dark.card,
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.sm,
+        borderRadius: BorderRadius.md,
+        alignSelf: 'flex-start',
+        marginTop: Spacing.sm,
     },
-    featureText: {
-        fontSize: 12,
-        color: '#8B4513',
-        fontWeight: '600',
-        textAlign: 'center',
+    explorarText: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.semibold,
+    },
+    productsContainer: {
+        paddingHorizontal: Spacing.xl,
     },
 });

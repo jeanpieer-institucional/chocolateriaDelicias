@@ -16,7 +16,7 @@ interface CartContextType {
     cartItems: CartItem[];
     loading: boolean;
     total: number;
-    addToCart: (product: any) => Promise<void>;
+    addToCart: (product: any, quantity?: number) => Promise<void>;
     removeFromCart: (productId: number) => Promise<void>;
     updateQuantity: (productId: number, quantity: number) => Promise<void>;
     clearCart: () => Promise<void>;
@@ -61,13 +61,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const addToCart = async (product: any) => {
+    const addToCart = async (product: any, quantity: number = 1) => {
         setCartItems(prevItems => {
             const existingItem = prevItems.find(item => item.id === product.id);
             if (existingItem) {
                 return prevItems.map(item =>
                     item.id === product.id
-                        ? { ...item, quantity: item.quantity + 1 }
+                        ? { ...item, quantity: item.quantity + quantity }
                         : item
                 );
             } else {
@@ -79,7 +79,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     name: product.nombre || product.name,
                     price: product.precio.toString().replace('S/ ', ''),
                     image_url: imageResource,
-                    quantity: 1
+                    quantity: quantity
                 }];
             }
         });

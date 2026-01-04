@@ -4,13 +4,12 @@ import { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../app/context/AuthContext';
 import { useCart } from '../app/context/CartContext';
-import { useTheme } from '../app/context/ThemeContext';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../constants/DesignSystem';
 
 export default function AppHeader() {
     const router = useRouter();
     const { user, logout } = useAuth();
     const { cartItems } = useCart();
-    const { colors } = useTheme();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const handleProfilePress = () => {
@@ -64,25 +63,25 @@ export default function AppHeader() {
             icon: 'log-out-outline',
             label: 'Cerrar Sesión',
             onPress: handleLogout,
-            color: '#E74C3C',
+            color: Colors.status.error,
         },
     ];
 
     return (
         <>
-            <View style={[styles.container, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+            <View style={styles.container}>
                 <View style={styles.leftSection}>
-                    <Text style={[styles.welcomeText, { color: colors.tabIconDefault }]}>Bienvenido</Text>
-                    <Text style={[styles.subText, { color: colors.text }]}>
-                        {user ? user.name : 'Únete a Choco Delisias'}
+                    <Text style={styles.welcomeText}>Bienvenido</Text>
+                    <Text style={styles.subText}>
+                        {user ? user.name : 'Piero'}
                     </Text>
                 </View>
 
                 <View style={styles.rightSection}>
-                    <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={handleCartPress}>
-                        <Ionicons name="cart-outline" size={24} color={colors.primary} />
+                    <TouchableOpacity style={styles.iconButton} onPress={handleCartPress}>
+                        <Ionicons name="cart-outline" size={24} color={Colors.primary.main} />
                         {cartItems.length > 0 && (
-                            <View style={[styles.badge, { backgroundColor: colors.danger, borderColor: colors.card }]}>
+                            <View style={styles.badge}>
                                 <Text style={styles.badgeText}>
                                     {cartItems.length > 9 ? '9+' : cartItems.length}
                                 </Text>
@@ -90,11 +89,11 @@ export default function AppHeader() {
                         )}
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={handleProfilePress}>
+                    <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress}>
                         <Ionicons
                             name={user ? "person" : "person-outline"}
                             size={24}
-                            color={colors.primary}
+                            color={Colors.primary.main}
                         />
                     </TouchableOpacity>
                 </View>
@@ -111,15 +110,15 @@ export default function AppHeader() {
                     activeOpacity={1}
                     onPress={() => setShowProfileMenu(false)}
                 >
-                    <View style={[styles.menuContainer, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-                        <View style={[styles.menuHeader, { backgroundColor: colors.primary }]}>
+                    <View style={styles.menuContainer}>
+                        <View style={styles.menuHeader}>
                             <View style={styles.userInfo}>
-                                <View style={[styles.avatarCircle, { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: '#FFF' }]}>
-                                    <Ionicons name="person" size={24} color="#FFF" />
+                                <View style={styles.avatarCircle}>
+                                    <Ionicons name="person" size={24} color={Colors.dark.background} />
                                 </View>
                                 <View>
-                                    <Text style={[styles.userName, { color: '#FFF' }]}>{user?.name}</Text>
-                                    <Text style={[styles.userEmail, { color: 'rgba(255, 255, 255, 0.8)' }]}>{user?.email}</Text>
+                                    <Text style={styles.userName}>{user?.name}</Text>
+                                    <Text style={styles.userEmail}>{user?.email}</Text>
                                 </View>
                             </View>
                         </View>
@@ -134,11 +133,11 @@ export default function AppHeader() {
                                     <Ionicons
                                         name={item.icon as any}
                                         size={22}
-                                        color={item.color || colors.text}
+                                        color={item.color || Colors.text.primary}
                                     />
                                     <Text style={[
                                         styles.menuItemText,
-                                        { color: item.color || colors.text }
+                                        { color: item.color || Colors.text.primary }
                                     ]}>
                                         {item.label}
                                     </Text>
@@ -157,133 +156,117 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 25,
-        paddingTop: 50, // Increased top padding for status bar
-        paddingBottom: 20,
-        paddingBottom: 20,
-        // backgroundColor: '#FFF', set dynamically
+        paddingHorizontal: Spacing.xl,
+        paddingTop: 50,
+        paddingBottom: Spacing.lg,
+        backgroundColor: Colors.dark.surface,
         borderBottomWidth: 1,
-        // borderBottomColor: '#F5E6D8', set dynamically
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 5,
+        borderBottomColor: Colors.border.default,
+        ...Shadows.medium,
     },
     leftSection: {
         flex: 1,
     },
     welcomeText: {
-        fontSize: 16, // Increased size
-        color: '#8D6E63',
-        fontWeight: '600',
-        marginBottom: 4,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+        fontWeight: Typography.weights.semibold,
+        marginBottom: Spacing.xs,
     },
     subText: {
-        fontSize: 22, // Increased size
-        color: '#5D4037',
-        fontWeight: 'bold',
+        fontSize: Typography.sizes.h4,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
     },
     rightSection: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 15,
+        gap: Spacing.md,
     },
     iconButton: {
-        width: 40, // Reduced from 48
+        width: 40,
         height: 40,
-        borderRadius: 20,
-        backgroundColor: '#FFF8F0',
+        borderRadius: BorderRadius.circle,
+        backgroundColor: Colors.dark.card,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#F5E6D8',
-        shadowColor: '#8B4513',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 2,
+        position: 'relative',
     },
     badge: {
         position: 'absolute',
         top: -2,
         right: -2,
-        backgroundColor: '#FF5252',
-        borderRadius: 12,
-        width: 22, // Larger badge
-        height: 22,
+        backgroundColor: Colors.primary.main,
+        borderRadius: BorderRadius.circle,
+        width: 20,
+        height: 20,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#FFF',
+        borderColor: Colors.dark.surface,
     },
     badgeText: {
-        color: '#FFF',
-        fontSize: 11,
-        fontWeight: 'bold',
+        color: Colors.dark.background,
+        fontSize: Typography.sizes.tiny,
+        fontWeight: Typography.weights.bold,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'flex-start',
         alignItems: 'flex-end',
         paddingTop: 60,
-        paddingRight: 20,
+        paddingRight: Spacing.xl,
     },
     menuContainer: {
-        backgroundColor: '#FFF',
-        borderRadius: 16,
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
         width: 280,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
-        elevation: 10,
+        ...Shadows.large,
         overflow: 'hidden',
     },
     menuHeader: {
-        backgroundColor: '#8B4513',
-        padding: 20,
+        backgroundColor: Colors.primary.main,
+        padding: Spacing.xl,
     },
     userInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: Spacing.md,
     },
     avatarCircle: {
         width: 50,
         height: 50,
-        borderRadius: 25,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: BorderRadius.round,
+        backgroundColor: 'rgba(13, 31, 26, 0.3)',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#FFF',
+        borderColor: Colors.dark.background,
     },
     userName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#FFF',
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
+        color: Colors.dark.background,
         marginBottom: 2,
     },
     userEmail: {
-        fontSize: 12,
-        color: '#FFF8F0',
-        opacity: 0.9,
+        fontSize: Typography.sizes.caption,
+        color: Colors.dark.background,
+        opacity: 0.8,
     },
     menuItems: {
-        paddingVertical: 8,
+        paddingVertical: Spacing.sm,
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        gap: 16,
+        paddingVertical: Spacing.md,
+        paddingHorizontal: Spacing.xl,
+        gap: Spacing.lg,
     },
     menuItemText: {
-        fontSize: 15,
-        color: '#5D4037',
-        fontWeight: '500',
+        fontSize: Typography.sizes.bodySmall,
+        fontWeight: Typography.weights.medium,
     },
 });

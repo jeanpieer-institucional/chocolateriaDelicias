@@ -12,15 +12,16 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import AppHeader from '../../../components/AppHeader';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../../constants/DesignSystem';
 import { useAddress } from '../../context/AddressContext';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 
 export default function AddressManagementScreen() {
     const router = useRouter();
     const { addresses, loading, createAddress, updateAddress, deleteAddress, setDefaultAddress } = useAddress();
     const { user } = useAuth();
-    const { colors } = useTheme();
 
     const [showModal, setShowModal] = useState(false);
     const [editingAddress, setEditingAddress] = useState<any>(null);
@@ -116,22 +117,23 @@ export default function AddressManagementScreen() {
 
     if (!user) {
         return (
-            <View style={[styles.container, { backgroundColor: colors.background }]}>
-                <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color={colors.text} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Direcciones</Text>
-                    <View style={styles.headerSpacer} />
+            <View style={styles.container}>
+                <AppHeader />
+                <View style={styles.titleContainer}>
+                    <Text style={styles.title}>Mis Direcciones</Text>
                 </View>
                 <View style={styles.emptyContainer}>
-                    <Ionicons name="person-outline" size={80} color={colors.tabIconDefault} />
-                    <Text style={[styles.emptyText, { color: colors.text }]}>Debes iniciar sesión para ver tus direcciones</Text>
+                    <View style={styles.emptyIconCircle}>
+                        <Ionicons name="person-outline" size={60} color={Colors.primary.main} />
+                    </View>
+                    <Text style={styles.emptyText}>Debes iniciar sesión</Text>
+                    <Text style={styles.emptySubtext}>Para ver y gestionar tus direcciones</Text>
                     <TouchableOpacity
-                        style={[styles.emptyButton, { backgroundColor: colors.primary }]}
+                        style={styles.loginButton}
                         onPress={() => router.push('/(auth)/login')}
+                        activeOpacity={0.9}
                     >
-                        <Text style={styles.emptyButtonText}>Iniciar Sesión</Text>
+                        <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -139,77 +141,93 @@ export default function AddressManagementScreen() {
     }
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Direcciones</Text>
-                <TouchableOpacity onPress={handleAddNew} style={styles.addButton}>
-                    <Ionicons name="add" size={24} color={colors.primary} />
+        <View style={styles.container}>
+            <AppHeader />
+
+            {/* Título con botón agregar */}
+            <View style={styles.titleContainer}>
+                <View>
+                    <Text style={styles.title}>Mis Direcciones</Text>
+                    {!loading && <Text style={styles.subtitle}>{addresses.length} direcciones</Text>}
+                </View>
+                <TouchableOpacity onPress={handleAddNew} style={styles.addButton} activeOpacity={0.8}>
+                    <Ionicons name="add-circle" size={32} color={Colors.primary.main} />
                 </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {loading ? (
-                    <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color={Colors.primary.main} />
+                        <Text style={styles.loadingText}>Cargando direcciones...</Text>
+                    </View>
                 ) : addresses.length === 0 ? (
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="location-outline" size={80} color={colors.tabIconDefault} />
-                        <Text style={[styles.emptyText, { color: colors.text }]}>No tienes direcciones guardadas</Text>
-                        <TouchableOpacity style={[styles.emptyButton, { backgroundColor: colors.primary }]} onPress={handleAddNew}>
-                            <Text style={styles.emptyButtonText}>Agregar Primera Dirección</Text>
+                        <View style={styles.emptyIconCircle}>
+                            <Ionicons name="location-outline" size={60} color={Colors.primary.main} />
+                        </View>
+                        <Text style={styles.emptyText}>No tienes direcciones guardadas</Text>
+                        <Text style={styles.emptySubtext}>Agrega tu primera dirección de envío</Text>
+                        <TouchableOpacity style={styles.addFirstButton} onPress={handleAddNew} activeOpacity={0.9}>
+                            <Text style={styles.addFirstButtonText}>Agregar Dirección</Text>
+                            <Ionicons name="arrow-forward" size={20} color={Colors.dark.background} />
                         </TouchableOpacity>
                     </View>
                 ) : (
-                    addresses.map((address) => (
-                        <View key={address.id} style={[styles.addressCard, { backgroundColor: colors.card }]}>
-                            {address.is_default && (
-                                <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
-                                    <Ionicons name="star" size={12} color="#FFF" />
-                                    <Text style={styles.defaultBadgeText}>Predeterminada</Text>
+                    addresses.map((address, index) => (
+                        <Animated.View key={address.id} entering={FadeInDown.delay(index * 50).duration(400)}>
+                            <View style={styles.addressCard}>
+                                {address.is_default && (
+                                    <View style={styles.defaultBadge}>
+                                        <Ionicons name="star" size={12} color={Colors.dark.background} />
+                                        <Text style={styles.defaultBadgeText}>Predeterminada</Text>
+                                    </View>
+                                )}
+
+                                <View style={styles.addressInfo}>
+                                    <Text style={styles.addressName}>{address.name}</Text>
+                                    <Text style={styles.addressPhone}>{address.phone}</Text>
+                                    <Text style={styles.addressText}>{address.address_line1}</Text>
+                                    {address.address_line2 && (
+                                        <Text style={styles.addressText}>{address.address_line2}</Text>
+                                    )}
                                 </View>
-                            )}
 
-                            <View style={styles.addressInfo}>
-                                <Text style={[styles.addressName, { color: colors.text }]}>{address.name}</Text>
-                                <Text style={[styles.addressPhone, { color: colors.tabIconDefault }]}>{address.phone}</Text>
-                                <Text style={[styles.addressText, { color: colors.tabIconDefault }]}>{address.address_line1}</Text>
-                                {address.address_line2 && (
-                                    <Text style={[styles.addressText, { color: colors.tabIconDefault }]}>{address.address_line2}</Text>
-                                )}
-                            </View>
+                                <View style={styles.addressActions}>
+                                    {!address.is_default && (
+                                        <TouchableOpacity
+                                            style={styles.actionButton}
+                                            onPress={() => handleSetDefault(address)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Ionicons name="star-outline" size={18} color={Colors.primary.main} />
+                                            <Text style={styles.actionButtonText}>Predeterminada</Text>
+                                        </TouchableOpacity>
+                                    )}
 
-                            <View style={styles.addressActions}>
-                                {!address.is_default && (
                                     <TouchableOpacity
-                                        style={[styles.actionButton, { backgroundColor: colors.background }]}
-                                        onPress={() => handleSetDefault(address)}
+                                        style={styles.actionButton}
+                                        onPress={() => handleEdit(address)}
+                                        activeOpacity={0.7}
                                     >
-                                        <Ionicons name="star-outline" size={20} color={colors.primary} />
-                                        <Text style={[styles.actionButtonText, { color: colors.primary }]}>Predeterminada</Text>
+                                        <Ionicons name="create-outline" size={18} color={Colors.status.info} />
+                                        <Text style={[styles.actionButtonText, { color: Colors.status.info }]}>Editar</Text>
                                     </TouchableOpacity>
-                                )}
 
-                                <TouchableOpacity
-                                    style={[styles.actionButton, { backgroundColor: colors.background }]}
-                                    onPress={() => handleEdit(address)}
-                                >
-                                    <Ionicons name="create-outline" size={20} color={colors.primary} />
-                                    <Text style={[styles.actionButtonText, { color: colors.primary }]}>Editar</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={[styles.actionButton, { backgroundColor: colors.background }]}
-                                    onPress={() => handleDelete(address)}
-                                >
-                                    <Ionicons name="trash-outline" size={20} color={colors.danger} />
-                                    <Text style={[styles.actionButtonText, { color: colors.danger }]}>Eliminar</Text>
-                                </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.actionButton}
+                                        onPress={() => handleDelete(address)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Ionicons name="trash-outline" size={18} color={Colors.status.error} />
+                                        <Text style={[styles.actionButtonText, { color: Colors.status.error }]}>Eliminar</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                        </View>
+                        </Animated.View>
                     ))
                 )}
+                <View style={{ height: Spacing.xxxl }} />
             </ScrollView>
 
             {/* Modal para Agregar/Editar Dirección */}
@@ -223,9 +241,9 @@ export default function AddressManagementScreen() {
                 }}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-                        <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-                            <Text style={[styles.modalTitle, { color: colors.text }]}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>
                                 {editingAddress ? 'Editar Dirección' : 'Nueva Dirección'}
                             </Text>
                             <TouchableOpacity
@@ -234,44 +252,44 @@ export default function AddressManagementScreen() {
                                     resetForm();
                                 }}
                             >
-                                <Ionicons name="close" size={28} color={colors.text} />
+                                <Ionicons name="close-circle" size={32} color={Colors.text.secondary} />
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView style={styles.modalScroll}>
-                            <Text style={[styles.label, { color: colors.text }]}>Nombre del destinatario *</Text>
+                        <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                            <Text style={styles.label}>Nombre del destinatario *</Text>
                             <TextInput
-                                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
+                                style={styles.input}
                                 placeholder="Ej: Juan Pérez"
-                                placeholderTextColor={colors.placeholder || '#A1887F'}
+                                placeholderTextColor={Colors.text.hint}
                                 value={formData.name}
                                 onChangeText={(text) => setFormData({ ...formData, name: text })}
                             />
 
-                            <Text style={[styles.label, { color: colors.text }]}>Teléfono *</Text>
+                            <Text style={styles.label}>Teléfono *</Text>
                             <TextInput
-                                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
+                                style={styles.input}
                                 placeholder="Ej: 987654321"
-                                placeholderTextColor={colors.placeholder || '#A1887F'}
+                                placeholderTextColor={Colors.text.hint}
                                 keyboardType="phone-pad"
                                 value={formData.phone}
                                 onChangeText={(text) => setFormData({ ...formData, phone: text })}
                             />
 
-                            <Text style={[styles.label, { color: colors.text }]}>Dirección *</Text>
+                            <Text style={styles.label}>Dirección *</Text>
                             <TextInput
-                                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
+                                style={styles.input}
                                 placeholder="Ej: Av. Principal 123"
-                                placeholderTextColor={colors.placeholder || '#A1887F'}
+                                placeholderTextColor={Colors.text.hint}
                                 value={formData.address_line1}
                                 onChangeText={(text) => setFormData({ ...formData, address_line1: text })}
                             />
 
-                            <Text style={[styles.label, { color: colors.text }]}>Depto, piso, referencia (opcional)</Text>
+                            <Text style={styles.label}>Depto, piso, referencia (opcional)</Text>
                             <TextInput
-                                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
+                                style={styles.input}
                                 placeholder="Ej: Depto 301, edificio azul"
-                                placeholderTextColor={colors.placeholder || '#A1887F'}
+                                placeholderTextColor={Colors.text.hint}
                                 value={formData.address_line2}
                                 onChangeText={(text) => setFormData({ ...formData, address_line2: text })}
                             />
@@ -279,16 +297,17 @@ export default function AddressManagementScreen() {
                             <TouchableOpacity
                                 style={styles.checkboxContainer}
                                 onPress={() => setFormData({ ...formData, is_default: !formData.is_default })}
+                                activeOpacity={0.7}
                             >
                                 <Ionicons
                                     name={formData.is_default ? "checkbox" : "square-outline"}
                                     size={24}
-                                    color={colors.primary}
+                                    color={Colors.primary.main}
                                 />
-                                <Text style={[styles.checkboxLabel, { color: colors.text }]}>Establecer como dirección predeterminada</Text>
+                                <Text style={styles.checkboxLabel}>Establecer como dirección predeterminada</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }]} onPress={handleSave}>
+                            <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.9}>
                                 <Text style={styles.saveButtonText}>
                                     {editingAddress ? 'Actualizar Dirección' : 'Guardar Dirección'}
                                 </Text>
@@ -304,193 +323,224 @@ export default function AddressManagementScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
-    header: {
+    titleContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 15,
-        backgroundColor: '#FFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#EFEBE9',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.lg,
     },
-    backButton: {
-        padding: 5,
+    title: {
+        fontSize: Typography.sizes.h3,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.xs,
     },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
+    subtitle: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
     },
     addButton: {
-        padding: 5,
-    },
-    headerSpacer: {
-        width: 24,
+        padding: Spacing.xs,
     },
     content: {
         flex: 1,
-        padding: 15,
+        paddingHorizontal: Spacing.xl,
+    },
+    loadingContainer: {
+        paddingTop: 100,
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: Spacing.lg,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingHorizontal: Spacing.xxxl,
         paddingTop: 100,
     },
+    emptyIconCircle: {
+        width: 120,
+        height: 120,
+        borderRadius: BorderRadius.circle,
+        backgroundColor: Colors.primary.main + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: Spacing.xxl,
+    },
     emptyText: {
-        fontSize: 18,
-        color: '#8D6E63',
-        marginTop: 20,
-        marginBottom: 30,
+        fontSize: Typography.sizes.h4,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.sm,
+        textAlign: 'center',
     },
-    emptyButton: {
-        backgroundColor: '#8B4513',
-        paddingHorizontal: 30,
-        paddingVertical: 12,
-        borderRadius: 25,
+    emptySubtext: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+        textAlign: 'center',
+        marginBottom: Spacing.xxl,
     },
-    emptyButtonText: {
-        color: '#FFF',
-        fontWeight: 'bold',
-        fontSize: 16,
+    loginButton: {
+        backgroundColor: Colors.primary.main,
+        paddingHorizontal: Spacing.xxl,
+        paddingVertical: Spacing.lg,
+        borderRadius: BorderRadius.xxxl,
+    },
+    loginButtonText: {
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.bold,
+        fontSize: Typography.sizes.body,
+    },
+    addFirstButton: {
+        backgroundColor: Colors.primary.main,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.xxl,
+        paddingVertical: Spacing.lg,
+        borderRadius: BorderRadius.xxxl,
+        gap: Spacing.sm,
+    },
+    addFirstButtonText: {
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.bold,
+        fontSize: Typography.sizes.body,
     },
     addressCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
+        ...Shadows.medium,
         position: 'relative',
     },
     defaultBadge: {
         position: 'absolute',
-        top: 10,
-        right: 10,
-        backgroundColor: '#D4AF37',
+        top: Spacing.md,
+        right: Spacing.md,
+        backgroundColor: Colors.primary.main,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingHorizontal: Spacing.sm,
+        paddingVertical: Spacing.xs,
+        borderRadius: BorderRadius.xl,
+        gap: 4,
     },
     defaultBadgeText: {
-        color: '#FFF',
-        fontSize: 11,
-        fontWeight: 'bold',
-        marginLeft: 4,
+        color: Colors.dark.background,
+        fontSize: Typography.sizes.tiny,
+        fontWeight: Typography.weights.bold,
     },
     addressInfo: {
-        marginBottom: 15,
+        marginBottom: Spacing.lg,
         paddingRight: 100,
     },
     addressName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#3E2723',
-        marginBottom: 4,
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
+        marginBottom: Spacing.xs,
     },
     addressPhone: {
-        fontSize: 14,
-        color: '#8D6E63',
-        marginBottom: 4,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+        marginBottom: Spacing.xs,
     },
     addressText: {
-        fontSize: 14,
-        color: '#8D6E63',
-        lineHeight: 20,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+        lineHeight: Typography.lineHeights.normal * Typography.sizes.bodySmall,
     },
     addressActions: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        gap: Spacing.sm,
     },
     actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: '#F5E6D8',
-        borderRadius: 20,
-        marginRight: 10,
-        marginBottom: 10,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.sm,
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.xl,
+        gap: 4,
     },
     actionButtonText: {
-        fontSize: 12,
-        color: '#8B4513',
-        fontWeight: '600',
-        marginLeft: 4,
+        fontSize: Typography.sizes.caption,
+        color: Colors.primary.main,
+        fontWeight: Typography.weights.semibold,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#FFF',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        backgroundColor: Colors.dark.card,
+        borderTopLeftRadius: BorderRadius.xxl,
+        borderTopRightRadius: BorderRadius.xxl,
         maxHeight: '90%',
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20,
+        padding: Spacing.xl,
         borderBottomWidth: 1,
-        borderBottomColor: '#EFEBE9',
+        borderBottomColor: Colors.border.default,
     },
     modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
+        fontSize: Typography.sizes.h4,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
     },
     modalScroll: {
-        padding: 20,
+        padding: Spacing.xl,
     },
     label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#5D4037',
-        marginBottom: 8,
-        marginTop: 10,
+        fontSize: Typography.sizes.bodySmall,
+        fontWeight: Typography.weights.semibold,
+        color: Colors.text.primary,
+        marginBottom: Spacing.sm,
+        marginTop: Spacing.md,
     },
     input: {
-        backgroundColor: '#F5F5F5',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 14,
-        color: '#3E2723',
-        marginBottom: 5,
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.md,
+        padding: Spacing.md,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        marginBottom: Spacing.sm,
+        borderWidth: 1,
+        borderColor: Colors.border.default,
     },
     checkboxContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 15,
-        marginBottom: 20,
+        marginTop: Spacing.lg,
+        marginBottom: Spacing.xl,
+        gap: Spacing.sm,
     },
     checkboxLabel: {
-        marginLeft: 10,
-        fontSize: 14,
-        color: '#5D4037',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
     },
     saveButton: {
-        backgroundColor: '#8B4513',
-        padding: 16,
-        borderRadius: 12,
+        backgroundColor: Colors.primary.main,
+        padding: Spacing.lg,
+        borderRadius: BorderRadius.xxxl,
         alignItems: 'center',
-        marginTop: 10,
-        marginBottom: 20,
+        marginBottom: Spacing.xl,
     },
     saveButtonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: 'bold',
+        color: Colors.dark.background,
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
     },
 });

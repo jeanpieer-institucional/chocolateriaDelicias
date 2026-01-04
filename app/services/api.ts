@@ -110,6 +110,7 @@ export const authService = {
 export const productService = {
     getCategories: () => api.get('/products/categories'),
     getAllProducts: () => api.get('/products'),
+    getProductById: (id: number) => api.get(`/products/${id}`),
 };
 
 export const orderService = {

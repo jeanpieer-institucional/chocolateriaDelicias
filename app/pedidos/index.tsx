@@ -2,8 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import AppHeader from '../../components/AppHeader';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../constants/DesignSystem';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { orderService } from '../services/api';
 
 export default function OrderHistory() {
@@ -11,7 +13,6 @@ export default function OrderHistory() {
     const [loading, setLoading] = useState(true);
     const { token } = useAuth();
     const router = useRouter();
-    const { colors } = useTheme();
 
     useEffect(() => {
         if (token) {
@@ -36,15 +37,18 @@ export default function OrderHistory() {
         switch (status.toLowerCase()) {
             case 'completed':
             case 'entregado':
-                return '#4CAF50';
+                return Colors.status.success;
             case 'pending':
             case 'pendiente':
-                return '#FF9800';
+                return Colors.status.warning;
             case 'cancelled':
             case 'cancelado':
-                return '#F44336';
+                return Colors.status.error;
+            case 'processing':
+            case 'en proceso':
+                return Colors.status.info;
             default:
-                return '#8D6E63';
+                return Colors.text.secondary;
         }
     };
 
@@ -53,65 +57,95 @@ export default function OrderHistory() {
             case 'completed': return 'Entregado';
             case 'pending': return 'Pendiente';
             case 'cancelled': return 'Cancelado';
+            case 'processing': return 'En Proceso';
             default: return status;
         }
     };
 
-    const renderItem = ({ item }: { item: any }) => (
-        <TouchableOpacity
-            style={[styles.card, { backgroundColor: colors.card }]}
-            onPress={() => router.push(`/pedidos/${item.id}`)}
-        >
-            <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
-                <Text style={[styles.orderId, { color: colors.text }]}>Pedido #{item.id}</Text>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status || 'pending') }]}>
-                    <Text style={styles.statusText}>{getStatusText(item.status || 'pending')}</Text>
-                </View>
-            </View>
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    };
 
-            <View style={styles.cardBody}>
-                <View style={styles.row}>
-                    <Ionicons name="calendar-outline" size={16} color={colors.tabIconDefault} />
-                    <Text style={[styles.dateText, { color: colors.tabIconDefault }]}>
-                        {new Date(item.created_at || Date.now()).toLocaleDateString()}
-                    </Text>
+    const renderItem = ({ item, index }: { item: any; index: number }) => (
+        <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => router.push(`/pedidos/${item.id}`)}
+                activeOpacity={0.9}
+            >
+                <View style={styles.cardHeader}>
+                    <View>
+                        <Text style={styles.orderId}>Pedido #{item.id}</Text>
+                        <Text style={styles.dateText}>{formatDate(item.created_at || Date.now())}</Text>
+                    </View>
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status || 'pending') + '20' }]}>
+                        <Text style={[styles.statusText, { color: getStatusColor(item.status || 'pending') }]}>
+                            {getStatusText(item.status || 'pending')}
+                        </Text>
+                    </View>
                 </View>
-                <View style={styles.row}>
-                    <Ionicons name="cash-outline" size={16} color={colors.tabIconDefault} />
-                    <Text style={[styles.totalText, { color: colors.primary }]}>S/ {item.total}</Text>
-                </View>
-            </View>
 
-            <View style={styles.cardFooter}>
-                <Text style={[styles.itemsText, { color: colors.tabIconDefault }]}>
-                    {item.items ? `${item.items.length} productos` : 'Ver detalles'}
-                </Text>
-                <Ionicons name="chevron-forward" size={20} color={colors.tabIconDefault} />
-            </View>
-        </TouchableOpacity>
+                <View style={styles.divider} />
+
+                <View style={styles.cardBody}>
+                    <View style={styles.row}>
+                        <Ionicons name="cube-outline" size={18} color={Colors.text.secondary} />
+                        <Text style={styles.itemsText}>
+                            {item.items ? `${item.items.length} productos` : 'Ver detalles'}
+                        </Text>
+                    </View>
+                    <View style={styles.totalRow}>
+                        <Text style={styles.totalLabel}>Total</Text>
+                        <Text style={styles.totalText}>S/ {parseFloat(item.total || 0).toFixed(2)}</Text>
+                    </View>
+                </View>
+
+                <View style={styles.viewDetailsRow}>
+                    <Text style={styles.viewDetailsText}>Ver detalles</Text>
+                    <Ionicons name="chevron-forward" size={18} color={Colors.primary.main} />
+                </View>
+            </TouchableOpacity>
+        </Animated.View>
     );
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.container}>
             <Stack.Screen options={{ headerShown: false }} />
+            <AppHeader />
 
-            <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <View>
-                    <Text style={[styles.title, { color: colors.text }]}>Mis Pedidos 📦</Text>
-                    <Text style={[styles.subtitle, { color: colors.tabIconDefault }]}>Historial de compras</Text>
-                </View>
+            {/* Título */}
+            <View style={styles.titleContainer}>
+                <Text style={styles.title}>Mis Pedidos</Text>
+                {!loading && <Text style={styles.subtitle}>{orders.length} pedidos</Text>}
             </View>
 
             {loading ? (
-                <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={Colors.primary.main} />
+                    <Text style={styles.loadingText}>Cargando pedidos...</Text>
+                </View>
             ) : orders.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                    <Ionicons name="receipt-outline" size={80} color={colors.tabIconDefault} />
-                    <Text style={[styles.emptyText, { color: colors.text }]}>No tienes pedidos aún</Text>
-                    <Text style={[styles.emptySubtext, { color: colors.tabIconDefault }]}>Tus compras aparecerán aquí</Text>
+                    <View style={styles.emptyIconCircle}>
+                        <Ionicons name="receipt-outline" size={60} color={Colors.primary.main} />
+                    </View>
+                    <Text style={styles.emptyText}>No tienes pedidos aún</Text>
+                    <Text style={styles.emptySubtext}>
+                        Realiza tu primera compra y aparecerá aquí
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.shopButton}
+                        onPress={() => router.push('/(tabs)/productos')}
+                        activeOpacity={0.9}
+                    >
+                        <Text style={styles.shopButtonText}>Ir a Comprar</Text>
+                        <Ionicons name="arrow-forward" size={20} color={Colors.dark.background} />
+                    </TouchableOpacity>
                 </View>
             ) : (
                 <FlatList
@@ -129,119 +163,152 @@ export default function OrderHistory() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
-    header: {
-        paddingHorizontal: 20,
-        paddingBottom: 20,
-        paddingTop: 60, //Separación con el header de la ventana de pedidos
-        backgroundColor: '#FFF',
-        borderBottomLeftRadius: 25,
-        borderBottomRightRadius: 25,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 8,
-        marginBottom: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    backButton: {
-        marginRight: 15,
-        padding: 5,
+    titleContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.lg,
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#5D4037',
+        fontSize: Typography.sizes.h3,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.xs,
     },
     subtitle: {
-        fontSize: 14,
-        color: '#8D6E63',
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
     },
-    listContent: {
-        padding: 15,
-    },
-    card: {
-        backgroundColor: '#FFF',
-        borderRadius: 15,
-        padding: 15,
-        marginBottom: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-        paddingBottom: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F5E6D8',
-    },
-    orderId: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#5D4037',
-    },
-    statusBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusText: {
-        color: '#FFF',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    cardBody: {
-        marginBottom: 10,
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 5,
-    },
-    dateText: {
-        marginLeft: 8,
-        color: '#8D6E63',
-        fontSize: 14,
-    },
-    totalText: {
-        marginLeft: 8,
-        color: '#5D4037',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    cardFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
         alignItems: 'center',
     },
-    itemsText: {
-        color: '#8D6E63',
-        fontSize: 14,
+    loadingText: {
+        marginTop: Spacing.lg,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 40,
+        paddingHorizontal: Spacing.xxxl,
+    },
+    emptyIconCircle: {
+        width: 120,
+        height: 120,
+        borderRadius: BorderRadius.circle,
+        backgroundColor: Colors.primary.main + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: Spacing.xxl,
     },
     emptyText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#8D6E63',
-        marginTop: 20,
-        marginBottom: 10,
+        fontSize: Typography.sizes.h4,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.sm,
+        textAlign: 'center',
     },
     emptySubtext: {
-        fontSize: 14,
-        color: '#A1887F',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
         textAlign: 'center',
+        marginBottom: Spacing.xxl,
+        lineHeight: Typography.lineHeights.relaxed * Typography.sizes.bodySmall,
+    },
+    shopButton: {
+        backgroundColor: Colors.primary.main,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.xxl,
+        paddingVertical: Spacing.lg,
+        borderRadius: BorderRadius.xxxl,
+        gap: Spacing.sm,
+    },
+    shopButtonText: {
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.bold,
+        fontSize: Typography.sizes.body,
+    },
+    listContent: {
+        paddingHorizontal: Spacing.xl,
+        paddingBottom: Spacing.xxxl,
+    },
+    card: {
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
+        ...Shadows.medium,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: Spacing.md,
+    },
+    orderId: {
+        fontSize: Typography.sizes.body,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: 2,
+    },
+    dateText: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
+    },
+    statusBadge: {
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.xs,
+        borderRadius: BorderRadius.xl,
+    },
+    statusText: {
+        fontSize: Typography.sizes.caption,
+        fontWeight: Typography.weights.semibold,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: Colors.border.default,
+        marginVertical: Spacing.md,
+    },
+    cardBody: {
+        marginBottom: Spacing.md,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        marginBottom: Spacing.md,
+    },
+    itemsText: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+    },
+    totalRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    totalLabel: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+    },
+    totalText: {
+        fontSize: Typography.sizes.h5,
+        color: Colors.primary.main,
+        fontWeight: Typography.weights.bold,
+    },
+    viewDetailsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: Spacing.xs,
+    },
+    viewDetailsText: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.primary.main,
+        fontWeight: Typography.weights.semibold,
     },
 });

@@ -12,6 +12,9 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import AppHeader from '../../components/AppHeader';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../constants/DesignSystem';
 import CulqiPayment from '../components/CulqiPayment';
 import { useAddress } from '../context/AddressContext';
 import { useAuth } from '../context/AuthContext';
@@ -25,13 +28,12 @@ export default function CheckoutScreen() {
     const { user, token } = useAuth();
 
     const [paymentMethod, setPaymentMethod] = useState<string>('cash');
-    const [shippingCost] = useState<number>(5.00); // Costo fijo de envío
+    const [shippingCost] = useState<number>(5.00);
     const [notes, setNotes] = useState<string>('');
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [showCulqiModal, setShowCulqiModal] = useState(false);
 
-    // Form state for new address
     const [newAddress, setNewAddress] = useState({
         name: user?.name || '',
         phone: '',
@@ -84,13 +86,11 @@ export default function CheckoutScreen() {
             return;
         }
 
-        // Si el método de pago es tarjeta, abrir Culqi
         if (paymentMethod === 'card') {
             setShowCulqiModal(true);
             return;
         }
 
-        // Para otros métodos de pago (efectivo, transferencia)
         await processOrder();
     };
 
@@ -99,17 +99,13 @@ export default function CheckoutScreen() {
         setProcessing(true);
 
         try {
-            console.log('Processing payment with Culqi token:', culqiToken);
-
             const items = cartItems.map(item => ({
                 productId: item.id,
                 quantity: item.quantity
             }));
 
             const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://10.83.39.41:3000';
-            console.log('Sending payment request to:', `${apiUrl}/api/payments/charge`);
 
-            // Procesar pago con Culqi
             const response = await fetch(`${apiUrl}/api/payments/charge`, {
                 method: 'POST',
                 headers: {
@@ -126,26 +122,18 @@ export default function CheckoutScreen() {
             });
 
             const data = await response.json();
-            console.log('Payment response:', data);
 
             if (!response.ok) {
-                const errorMsg = data.error || data.message || 'Error al procesar el pago';
-                console.error('Payment failed:', errorMsg);
-                throw new Error(errorMsg);
+                throw new Error(data.error || data.message || 'Error al procesar el pago');
             }
 
-            // Clear cart and navigate to success screen
             clearCart();
             router.replace({
                 pathname: '/checkout/exito',
                 params: { orderId: data.orderId }
             });
         } catch (error: any) {
-            console.error('Payment error:', error);
-            Alert.alert(
-                'Error de Pago',
-                error.message || 'No se pudo procesar el pago. Por favor, verifica tu conexión e intenta nuevamente.'
-            );
+            Alert.alert('Error de Pago', error.message || 'No se pudo procesar el pago');
         } finally {
             setProcessing(false);
         }
@@ -174,16 +162,13 @@ export default function CheckoutScreen() {
                 notes.trim() || undefined
             );
 
-            // Clear cart and navigate to success screen
             clearCart();
             router.replace({
                 pathname: '/checkout/exito',
                 params: { orderId: response.data.orderId }
             });
         } catch (error: any) {
-            console.error('Checkout error:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Error al procesar el pedido';
-            Alert.alert('Error', errorMessage);
+            Alert.alert('Error', error.response?.data?.message || error.message || 'Error al procesar el pedido');
         } finally {
             setProcessing(false);
         }
@@ -194,37 +179,45 @@ export default function CheckoutScreen() {
     if (!user) {
         return (
             <View style={styles.container}>
-                <Text style={styles.errorText}>Debes iniciar sesión para continuar</Text>
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => router.push('/(auth)/login')}
-                >
-                    <Text style={styles.buttonText}>Iniciar Sesión</Text>
-                </TouchableOpacity>
+                <AppHeader />
+                <View style={styles.emptyContainer}>
+                    <View style={styles.emptyIconCircle}>
+                        <Ionicons name="lock-closed-outline" size={60} color={Colors.primary.main} />
+                    </View>
+                    <Text style={styles.emptyText}>Debes iniciar sesión</Text>
+                    <Text style={styles.emptySubtext}>Para continuar con tu compra</Text>
+                    <TouchableOpacity
+                        style={styles.loginButton}
+                        onPress={() => router.push('/(auth)/login')}
+                        activeOpacity={0.9}
+                    >
+                        <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#5D4037" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Checkout</Text>
-                <View style={{ width: 24 }} />
+            <AppHeader />
+
+            {/* Título */}
+            <View style={styles.titleContainer}>
+                <Text style={styles.title}>Checkout</Text>
+                <Text style={styles.subtitle}>{cartItems.length} productos</Text>
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Dirección de Envío */}
-                <View style={styles.section}>
+                <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Ionicons name="location-outline" size={24} color="#8B4513" />
+                        <Ionicons name="location-outline" size={22} color={Colors.primary.main} />
                         <Text style={styles.sectionTitle}>Dirección de Envío</Text>
                     </View>
 
                     {addressLoading ? (
-                        <ActivityIndicator size="small" color="#8B4513" />
+                        <ActivityIndicator size="small" color={Colors.primary.main} />
                     ) : selectedAddress ? (
                         <View style={styles.selectedAddress}>
                             <View style={styles.addressInfo}>
@@ -238,6 +231,7 @@ export default function CheckoutScreen() {
                             <TouchableOpacity
                                 style={styles.changeButton}
                                 onPress={() => setShowAddressModal(true)}
+                                activeOpacity={0.8}
                             >
                                 <Text style={styles.changeButtonText}>Cambiar</Text>
                             </TouchableOpacity>
@@ -246,17 +240,18 @@ export default function CheckoutScreen() {
                         <TouchableOpacity
                             style={styles.addAddressButton}
                             onPress={() => setShowAddressModal(true)}
+                            activeOpacity={0.9}
                         >
-                            <Ionicons name="add-circle-outline" size={24} color="#8B4513" />
+                            <Ionicons name="add-circle-outline" size={24} color={Colors.primary.main} />
                             <Text style={styles.addAddressText}>Agregar Dirección</Text>
                         </TouchableOpacity>
                     )}
-                </View>
+                </Animated.View>
 
                 {/* Método de Pago */}
-                <View style={styles.section}>
+                <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Ionicons name="card-outline" size={24} color="#8B4513" />
+                        <Ionicons name="card-outline" size={22} color={Colors.primary.main} />
                         <Text style={styles.sectionTitle}>Método de Pago</Text>
                     </View>
 
@@ -268,11 +263,12 @@ export default function CheckoutScreen() {
                                 paymentMethod === method.id && styles.paymentOptionSelected
                             ]}
                             onPress={() => setPaymentMethod(method.id)}
+                            activeOpacity={0.8}
                         >
                             <Ionicons
                                 name={method.icon as any}
-                                size={24}
-                                color={paymentMethod === method.id ? '#8B4513' : '#8D6E63'}
+                                size={22}
+                                color={paymentMethod === method.id ? Colors.primary.main : Colors.text.secondary}
                             />
                             <Text
                                 style={[
@@ -283,31 +279,31 @@ export default function CheckoutScreen() {
                                 {method.name}
                             </Text>
                             {paymentMethod === method.id && (
-                                <Ionicons name="checkmark-circle" size={24} color="#8B4513" />
+                                <Ionicons name="checkmark-circle" size={22} color={Colors.primary.main} />
                             )}
                         </TouchableOpacity>
                     ))}
-                </View>
+                </Animated.View>
 
                 {/* Notas Adicionales */}
-                <View style={styles.section}>
+                <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Ionicons name="document-text-outline" size={24} color="#8B4513" />
+                        <Ionicons name="document-text-outline" size={22} color={Colors.primary.main} />
                         <Text style={styles.sectionTitle}>Notas (Opcional)</Text>
                     </View>
                     <TextInput
                         style={styles.notesInput}
                         placeholder="Instrucciones de entrega, preferencias, etc."
-                        placeholderTextColor="#A1887F"
+                        placeholderTextColor={Colors.text.hint}
                         multiline
                         numberOfLines={3}
                         value={notes}
                         onChangeText={setNotes}
                     />
-                </View>
+                </Animated.View>
 
                 {/* Resumen del Pedido */}
-                <View style={styles.section}>
+                <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.section}>
                     <Text style={styles.sectionTitle}>Resumen del Pedido</Text>
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Subtotal ({cartItems.length} items)</Text>
@@ -317,22 +313,26 @@ export default function CheckoutScreen() {
                         <Text style={styles.summaryLabel}>Envío</Text>
                         <Text style={styles.summaryValue}>S/ {shippingCost.toFixed(2)}</Text>
                     </View>
-                    <View style={[styles.summaryRow, styles.totalRow]}>
+                    <View style={styles.divider} />
+                    <View style={styles.summaryRow}>
                         <Text style={styles.totalLabel}>Total</Text>
                         <Text style={styles.totalValue}>S/ {finalTotal.toFixed(2)}</Text>
                     </View>
-                </View>
+                </Animated.View>
+
+                <View style={{ height: 100 }} />
             </ScrollView>
 
             {/* Botón de Confirmar */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={[styles.confirmButton, processing && styles.confirmButtonDisabled]}
+                    style={[styles.confirmButton, (processing || !selectedAddress) && styles.confirmButtonDisabled]}
                     onPress={handleCheckout}
                     disabled={processing || !selectedAddress}
+                    activeOpacity={0.9}
                 >
                     {processing ? (
-                        <ActivityIndicator color="#FFF" />
+                        <ActivityIndicator color={Colors.dark.background} />
                     ) : (
                         <>
                             <Text style={styles.confirmButtonText}>Confirmar Pedido</Text>
@@ -354,11 +354,11 @@ export default function CheckoutScreen() {
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Seleccionar Dirección</Text>
                             <TouchableOpacity onPress={() => setShowAddressModal(false)}>
-                                <Ionicons name="close" size={28} color="#5D4037" />
+                                <Ionicons name="close-circle" size={32} color={Colors.text.secondary} />
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView style={styles.modalScroll}>
+                        <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
                             {addresses.map((address) => (
                                 <TouchableOpacity
                                     key={address.id}
@@ -370,6 +370,7 @@ export default function CheckoutScreen() {
                                         selectAddress(address);
                                         setShowAddressModal(false);
                                     }}
+                                    activeOpacity={0.8}
                                 >
                                     <View style={styles.addressOptionInfo}>
                                         <Text style={styles.addressOptionName}>{address.name}</Text>
@@ -380,7 +381,7 @@ export default function CheckoutScreen() {
                                         )}
                                     </View>
                                     {selectedAddress?.id === address.id && (
-                                        <Ionicons name="checkmark-circle" size={24} color="#8B4513" />
+                                        <Ionicons name="checkmark-circle" size={24} color={Colors.primary.main} />
                                     )}
                                 </TouchableOpacity>
                             ))}
@@ -392,6 +393,7 @@ export default function CheckoutScreen() {
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Nombre del destinatario *"
+                                    placeholderTextColor={Colors.text.hint}
                                     value={newAddress.name}
                                     onChangeText={(text) => setNewAddress({ ...newAddress, name: text })}
                                 />
@@ -399,6 +401,7 @@ export default function CheckoutScreen() {
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Teléfono *"
+                                    placeholderTextColor={Colors.text.hint}
                                     keyboardType="phone-pad"
                                     value={newAddress.phone}
                                     onChangeText={(text) => setNewAddress({ ...newAddress, phone: text })}
@@ -407,6 +410,7 @@ export default function CheckoutScreen() {
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Dirección *"
+                                    placeholderTextColor={Colors.text.hint}
                                     value={newAddress.address_line1}
                                     onChangeText={(text) => setNewAddress({ ...newAddress, address_line1: text })}
                                 />
@@ -414,6 +418,7 @@ export default function CheckoutScreen() {
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Depto, piso, referencia (opcional)"
+                                    placeholderTextColor={Colors.text.hint}
                                     value={newAddress.address_line2}
                                     onChangeText={(text) => setNewAddress({ ...newAddress, address_line2: text })}
                                 />
@@ -421,6 +426,7 @@ export default function CheckoutScreen() {
                                 <TouchableOpacity
                                     style={styles.addButton}
                                     onPress={handleAddAddress}
+                                    activeOpacity={0.9}
                                 >
                                     <Text style={styles.addButtonText}>Agregar Dirección</Text>
                                 </TouchableOpacity>
@@ -448,52 +454,43 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 15,
-        backgroundColor: '#FFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#EFEBE9',
+    titleContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.lg,
     },
-    backButton: {
-        padding: 5,
+    title: {
+        fontSize: Typography.sizes.h3,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.xs,
     },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
+    subtitle: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
     },
     content: {
         flex: 1,
     },
     section: {
-        backgroundColor: '#FFF',
-        marginVertical: 10,
-        marginHorizontal: 15,
-        padding: 15,
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
+        backgroundColor: Colors.dark.card,
+        marginVertical: Spacing.sm,
+        marginHorizontal: Spacing.xl,
+        padding: Spacing.lg,
+        borderRadius: BorderRadius.lg,
+        ...Shadows.medium,
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: Spacing.lg,
+        gap: Spacing.sm,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginLeft: 10,
+        fontSize: Typography.sizes.h5,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
     },
     selectedAddress: {
         flexDirection: 'row',
@@ -504,246 +501,266 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     addressName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#3E2723',
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
         marginBottom: 4,
     },
     addressPhone: {
-        fontSize: 14,
-        color: '#8D6E63',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
         marginBottom: 4,
     },
     addressText: {
-        fontSize: 14,
-        color: '#8D6E63',
-        lineHeight: 20,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+        lineHeight: Typography.lineHeights.normal * Typography.sizes.bodySmall,
     },
     changeButton: {
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        backgroundColor: '#F5E6D8',
-        borderRadius: 8,
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.sm,
+        backgroundColor: Colors.primary.main + '20',
+        borderRadius: BorderRadius.md,
     },
     changeButtonText: {
-        color: '#8B4513',
-        fontWeight: '600',
+        color: Colors.primary.main,
+        fontWeight: Typography.weights.semibold,
+        fontSize: Typography.sizes.bodySmall,
     },
     addAddressButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 15,
-        backgroundColor: '#F5E6D8',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#D7CCC8',
+        padding: Spacing.lg,
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.md,
+        borderWidth: 2,
+        borderColor: Colors.border.default,
         borderStyle: 'dashed',
+        gap: Spacing.sm,
     },
     addAddressText: {
-        marginLeft: 10,
-        fontSize: 16,
-        color: '#8B4513',
-        fontWeight: '600',
+        fontSize: Typography.sizes.body,
+        color: Colors.primary.main,
+        fontWeight: Typography.weights.semibold,
     },
     paymentOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 15,
-        marginBottom: 10,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 8,
+        padding: Spacing.lg,
+        marginBottom: Spacing.sm,
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.md,
         borderWidth: 2,
         borderColor: 'transparent',
+        gap: Spacing.md,
     },
     paymentOptionSelected: {
-        backgroundColor: '#FFF8F0',
-        borderColor: '#8B4513',
+        backgroundColor: Colors.primary.main + '15',
+        borderColor: Colors.primary.main,
     },
     paymentText: {
         flex: 1,
-        marginLeft: 15,
-        fontSize: 15,
-        color: '#5D4037',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
     },
     paymentTextSelected: {
-        fontWeight: '600',
-        color: '#8B4513',
+        fontWeight: Typography.weights.semibold,
+        color: Colors.text.primary,
     },
     notesInput: {
-        backgroundColor: '#F5F5F5',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 14,
-        color: '#3E2723',
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.md,
+        padding: Spacing.md,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
         textAlignVertical: 'top',
         minHeight: 80,
+        borderWidth: 1,
+        borderColor: Colors.border.default,
     },
     summaryRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 10,
+        marginBottom: Spacing.sm,
     },
     summaryLabel: {
-        fontSize: 15,
-        color: '#8D6E63',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
     },
     summaryValue: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#5D4037',
+        fontSize: Typography.sizes.bodySmall,
+        fontWeight: Typography.weights.semibold,
+        color: Colors.text.primary,
     },
-    totalRow: {
-        marginTop: 10,
-        paddingTop: 15,
-        borderTopWidth: 1,
-        borderTopColor: '#EFEBE9',
+    divider: {
+        height: 1,
+        backgroundColor: Colors.border.default,
+        marginVertical: Spacing.md,
     },
     totalLabel: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#3E2723',
+        fontSize: Typography.sizes.h5,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
     },
     totalValue: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#8B4513',
+        fontSize: Typography.sizes.h4,
+        fontWeight: Typography.weights.extrabold,
+        color: Colors.primary.main,
     },
     footer: {
-        padding: 20,
-        backgroundColor: '#FFF',
+        padding: Spacing.xl,
+        backgroundColor: Colors.dark.card,
         borderTopWidth: 1,
-        borderTopColor: '#EFEBE9',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 10,
+        borderTopColor: Colors.border.default,
+        ...Shadows.large,
     },
     confirmButton: {
-        backgroundColor: '#8B4513',
-        padding: 16,
-        borderRadius: 12,
+        backgroundColor: Colors.primary.main,
+        padding: Spacing.lg,
+        borderRadius: BorderRadius.xxxl,
         alignItems: 'center',
     },
     confirmButtonDisabled: {
-        backgroundColor: '#D7CCC8',
+        backgroundColor: Colors.text.disabled,
     },
     confirmButtonText: {
-        color: '#FFF',
-        fontSize: 18,
-        fontWeight: 'bold',
+        color: Colors.dark.background,
+        fontSize: Typography.sizes.h5,
+        fontWeight: Typography.weights.bold,
     },
     confirmButtonSubtext: {
-        color: '#FFF',
-        fontSize: 14,
+        color: Colors.dark.background,
+        fontSize: Typography.sizes.bodySmall,
         marginTop: 4,
+        opacity: 0.9,
     },
-    errorText: {
-        fontSize: 16,
-        color: '#8D6E63',
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.xxxl,
+    },
+    emptyIconCircle: {
+        width: 120,
+        height: 120,
+        borderRadius: BorderRadius.circle,
+        backgroundColor: Colors.primary.main + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: Spacing.xxl,
+    },
+    emptyText: {
+        fontSize: Typography.sizes.h4,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.sm,
+    },
+    emptySubtext: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
         textAlign: 'center',
-        marginTop: 50,
+        marginBottom: Spacing.xxl,
     },
-    button: {
-        backgroundColor: '#8B4513',
-        paddingHorizontal: 30,
-        paddingVertical: 12,
-        borderRadius: 25,
-        marginTop: 20,
-        alignSelf: 'center',
+    loginButton: {
+        backgroundColor: Colors.primary.main,
+        paddingHorizontal: Spacing.xxl,
+        paddingVertical: Spacing.lg,
+        borderRadius: BorderRadius.xxxl,
     },
-    buttonText: {
-        color: '#FFF',
-        fontWeight: 'bold',
-        fontSize: 16,
+    loginButtonText: {
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.bold,
+        fontSize: Typography.sizes.body,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#FFF',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        backgroundColor: Colors.dark.card,
+        borderTopLeftRadius: BorderRadius.xxl,
+        borderTopRightRadius: BorderRadius.xxl,
         maxHeight: '80%',
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20,
+        padding: Spacing.xl,
         borderBottomWidth: 1,
-        borderBottomColor: '#EFEBE9',
+        borderBottomColor: Colors.border.default,
     },
     modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
+        fontSize: Typography.sizes.h4,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
     },
     modalScroll: {
-        padding: 20,
+        padding: Spacing.xl,
     },
     addressOption: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        padding: 15,
-        marginBottom: 10,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 8,
+        padding: Spacing.lg,
+        marginBottom: Spacing.sm,
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.md,
         borderWidth: 2,
         borderColor: 'transparent',
     },
     addressOptionSelected: {
-        backgroundColor: '#FFF8F0',
-        borderColor: '#8B4513',
+        backgroundColor: Colors.primary.main + '15',
+        borderColor: Colors.primary.main,
     },
     addressOptionInfo: {
         flex: 1,
     },
     addressOptionName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#3E2723',
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
         marginBottom: 4,
     },
     addressOptionText: {
-        fontSize: 14,
-        color: '#8D6E63',
-        lineHeight: 20,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+        lineHeight: Typography.lineHeights.normal * Typography.sizes.bodySmall,
     },
     newAddressForm: {
-        marginTop: 20,
-        paddingTop: 20,
+        marginTop: Spacing.xl,
+        paddingTop: Spacing.xl,
         borderTopWidth: 1,
-        borderTopColor: '#EFEBE9',
+        borderTopColor: Colors.border.default,
     },
     formTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginBottom: 15,
+        fontSize: Typography.sizes.h5,
+        fontWeight: Typography.weights.bold,
+        color: Colors.text.primary,
+        marginBottom: Spacing.lg,
     },
     input: {
-        backgroundColor: '#F5F5F5',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 14,
-        color: '#3E2723',
-        marginBottom: 12,
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.md,
+        padding: Spacing.md,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        marginBottom: Spacing.md,
+        borderWidth: 1,
+        borderColor: Colors.border.default,
     },
     addButton: {
-        backgroundColor: '#8B4513',
-        padding: 14,
-        borderRadius: 8,
+        backgroundColor: Colors.primary.main,
+        padding: Spacing.lg,
+        borderRadius: BorderRadius.xxxl,
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: Spacing.md,
     },
     addButtonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: 'bold',
+        color: Colors.dark.background,
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
     },
 });

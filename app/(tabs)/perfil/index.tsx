@@ -2,14 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import AppHeader from '../../../components/AppHeader';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../../constants/DesignSystem';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { authService } from '../../services/api';
 
 export default function PerfilScreen() {
     const router = useRouter();
-    const { user, token, login } = useAuth();
-    const { theme, toggleTheme, colors } = useTheme();
+    const { user, token, login, logout } = useAuth();
     const [showEditName, setShowEditName] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
 
@@ -32,10 +33,7 @@ export default function PerfilScreen() {
         try {
             setLoadingName(true);
             const response = await authService.updateProfile(newName.trim(), token!);
-
-            // Update user in context
             await login(response.data.user, token!);
-
             Alert.alert('Éxito', 'Perfil actualizado correctamente');
             setShowEditName(false);
         } catch (error: any) {
@@ -65,7 +63,6 @@ export default function PerfilScreen() {
         try {
             setLoadingPassword(true);
             await authService.changePassword(currentPassword, newPassword, token!);
-
             Alert.alert('Éxito', 'Contraseña cambiada correctamente');
             setShowChangePassword(false);
             setCurrentPassword('');
@@ -79,151 +76,141 @@ export default function PerfilScreen() {
         }
     };
 
+    const handleLogout = () => {
+        Alert.alert(
+            'Cerrar Sesión',
+            '¿Estás seguro que deseas cerrar sesión?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Cerrar Sesión',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await logout();
+                        router.replace('/');
+                    },
+                },
+            ]
+        );
+    };
+
     if (!user) {
         return null;
     }
 
+    const menuItems = [
+        {
+            icon: 'person-outline',
+            title: 'Editar Nombre',
+            subtitle: user.name,
+            onPress: () => setShowEditName(true),
+            color: Colors.primary.main,
+        },
+        {
+            icon: 'mail-outline',
+            title: 'Correo Electrónico',
+            subtitle: user.email,
+            onPress: () => { },
+            color: Colors.status.info,
+            disabled: true,
+        },
+        {
+            icon: 'lock-closed-outline',
+            title: 'Cambiar Contraseña',
+            subtitle: '••••••••',
+            onPress: () => setShowChangePassword(true),
+            color: Colors.status.warning,
+        },
+        {
+            icon: 'receipt-outline',
+            title: 'Mis Pedidos',
+            subtitle: 'Ver historial de compras',
+            onPress: () => router.push('/pedidos'),
+            color: Colors.primary.main,
+        },
+        {
+            icon: 'location-outline',
+            title: 'Mis Direcciones',
+            subtitle: 'Gestionar direcciones de envío',
+            onPress: () => router.push('/(tabs)/perfil/direcciones'),
+            color: Colors.status.success,
+        },
+    ];
+
     return (
-        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
-            {/* Header */}
-            <View style={[styles.header, { backgroundColor: colors.primary }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.text} style={{ color: '#FFF' }} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Mi Perfil</Text>
-                <View style={{ width: 24 }} />
-            </View>
+        <View style={styles.container}>
+            <AppHeader />
 
-            {/* Avatar Section */}
-            <View style={[styles.avatarSection, { backgroundColor: colors.primary }]}>
-                <View style={styles.avatarCircle}>
-                    <Text style={[styles.avatarText, { color: colors.card }]}>{user.name.charAt(0).toUpperCase()}</Text>
-                </View>
-                <Text style={styles.userName}>{user.name}</Text>
-                <Text style={styles.userEmail}>{user.email}</Text>
-            </View>
-
-            {/* Info Cards */}
-            <View style={styles.cardsContainer}>
-                {/* Theme Toggle Card */}
-                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-                    <TouchableOpacity
-                        style={styles.cardHeader}
-                        onPress={toggleTheme}
-                    >
-                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
-                            <Ionicons name={theme === 'dark' ? "moon" : "sunny"} size={20} color={colors.primary} />
-                        </View>
-                        <View style={styles.cardContent}>
-                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Tema</Text>
-                            <Text style={[styles.cardValue, { color: colors.text }]}>{theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro'}</Text>
-                        </View>
-                        <View pointerEvents="none">
-                            <Ionicons
-                                name={theme === 'dark' ? "toggle" : "toggle-outline"}
-                                size={30}
-                                color={colors.primary}
-                            />
-                        </View>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Name Card */}
-                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-                    <View style={styles.cardHeader}>
-                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
-                            <Ionicons name="person-outline" size={20} color={colors.primary} />
-                        </View>
-                        <View style={styles.cardContent}>
-                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Nombre</Text>
-                            <Text style={[styles.cardValue, { color: colors.text }]}>{user.name}</Text>
-                        </View>
-                        <TouchableOpacity onPress={() => {
-                            setNewName(user.name);
-                            setShowEditName(true);
-                        }}>
-                            <Ionicons name="pencil" size={20} color={colors.secondary} />
-                        </TouchableOpacity>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Avatar Section */}
+                <Animated.View entering={FadeInDown.duration(600)} style={styles.avatarSection}>
+                    <View style={styles.avatarCircle}>
+                        <Text style={styles.avatarText}>{user.name.charAt(0).toUpperCase()}</Text>
                     </View>
+                    <Text style={styles.userName}>{user.name}</Text>
+                    <Text style={styles.userEmail}>{user.email}</Text>
+                </Animated.View>
+
+                {/* Menu Items */}
+                <View style={styles.menuSection}>
+                    {menuItems.map((item, index) => (
+                        <Animated.View key={index} entering={FadeInDown.delay(index * 50).duration(400)}>
+                            <TouchableOpacity
+                                style={[styles.menuItem, item.disabled && styles.menuItemDisabled]}
+                                onPress={item.onPress}
+                                disabled={item.disabled}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.iconCircle, { backgroundColor: item.color + '20' }]}>
+                                    <Ionicons name={item.icon as any} size={22} color={item.color} />
+                                </View>
+                                <View style={styles.menuItemText}>
+                                    <Text style={styles.menuItemTitle}>{item.title}</Text>
+                                    <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+                                </View>
+                                {!item.disabled && (
+                                    <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
+                                )}
+                            </TouchableOpacity>
+                        </Animated.View>
+                    ))}
                 </View>
 
-                {/* Email Card */}
-                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-                    <View style={styles.cardHeader}>
-                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
-                            <Ionicons name="mail-outline" size={20} color={colors.primary} />
-                        </View>
-                        <View style={styles.cardContent}>
-                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Correo Electrónico</Text>
-                            <Text style={[styles.cardValue, { color: colors.text }]}>{user.email}</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Password Card */}
-                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-                    <TouchableOpacity
-                        style={styles.cardHeader}
-                        onPress={() => setShowChangePassword(true)}
-                    >
-                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
-                            <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
-                        </View>
-                        <View style={styles.cardContent}>
-                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Contraseña</Text>
-                            <Text style={[styles.cardValue, { color: colors.text }]}>••••••••</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color={colors.secondary} />
+                {/* Logout Button */}
+                <Animated.View entering={FadeInDown.delay(300).duration(600)} style={styles.logoutSection}>
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.9}>
+                        <Ionicons name="log-out-outline" size={22} color={Colors.status.error} />
+                        <Text style={styles.logoutText}>Cerrar Sesión</Text>
                     </TouchableOpacity>
-                </View>
+                </Animated.View>
 
-                {/* Addresses Card */}
-                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-                    <TouchableOpacity
-                        style={styles.cardHeader}
-                        onPress={() => router.push('/(tabs)/perfil/direcciones')}
-                    >
-                        <View style={[styles.cardIconContainer, { backgroundColor: colors.background }]}>
-                            <Ionicons name="location-outline" size={20} color={colors.primary} />
-                        </View>
-                        <View style={styles.cardContent}>
-                            <Text style={[styles.cardLabel, { color: colors.tabIconDefault }]}>Mis Direcciones</Text>
-                            <Text style={[styles.cardValue, { color: colors.text }]}>Gestionar direcciones de envío</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color={colors.secondary} />
-                    </TouchableOpacity>
-                </View>
-            </View>
+                <View style={{ height: Spacing.xxxl }} />
+            </ScrollView>
 
             {/* Edit Name Modal */}
-            <Modal
-                visible={showEditName}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setShowEditName(false)}
-            >
+            <Modal visible={showEditName} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
-                        <Text style={[styles.modalTitle, { color: colors.text }]}>Editar Nombre</Text>
-
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Editar Nombre</Text>
                         <TextInput
-                            style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                            placeholder="Nuevo nombre"
-                            placeholderTextColor={colors.placeholder}
+                            style={styles.input}
                             value={newName}
                             onChangeText={setNewName}
-                            autoFocus
+                            placeholder="Nombre completo"
+                            placeholderTextColor={Colors.text.hint}
                         />
-
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.modalButton, { backgroundColor: colors.border }]}
-                                onPress={() => setShowEditName(false)}
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={() => {
+                                    setShowEditName(false);
+                                    setNewName(user.name);
+                                }}
                             >
-                                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancelar</Text>
+                                <Text style={styles.cancelButtonText}>Cancelar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, { backgroundColor: colors.secondary }]}
+                                style={[styles.modalButton, styles.saveButton]}
                                 onPress={handleUpdateName}
                                 disabled={loadingName}
                             >
@@ -237,46 +224,37 @@ export default function PerfilScreen() {
             </Modal>
 
             {/* Change Password Modal */}
-            <Modal
-                visible={showChangePassword}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setShowChangePassword(false)}
-            >
+            <Modal visible={showChangePassword} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
-                        <Text style={[styles.modalTitle, { color: colors.text }]}>Cambiar Contraseña</Text>
-
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
                         <TextInput
-                            style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                            placeholder="Contraseña actual"
-                            placeholderTextColor={colors.placeholder}
-                            secureTextEntry
+                            style={styles.input}
                             value={currentPassword}
                             onChangeText={setCurrentPassword}
-                        />
-
-                        <TextInput
-                            style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                            placeholder="Nueva contraseña"
-                            placeholderTextColor={colors.placeholder}
+                            placeholder="Contraseña actual"
+                            placeholderTextColor={Colors.text.hint}
                             secureTextEntry
+                        />
+                        <TextInput
+                            style={styles.input}
                             value={newPassword}
                             onChangeText={setNewPassword}
-                        />
-
-                        <TextInput
-                            style={[styles.modalInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                            placeholder="Confirmar nueva contraseña"
-                            placeholderTextColor={colors.placeholder}
+                            placeholder="Nueva contraseña"
+                            placeholderTextColor={Colors.text.hint}
                             secureTextEntry
+                        />
+                        <TextInput
+                            style={styles.input}
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
+                            placeholder="Confirmar contraseña"
+                            placeholderTextColor={Colors.text.hint}
+                            secureTextEntry
                         />
-
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.modalButton, { backgroundColor: colors.border }]}
+                                style={[styles.modalButton, styles.cancelButton]}
                                 onPress={() => {
                                     setShowChangePassword(false);
                                     setCurrentPassword('');
@@ -284,177 +262,173 @@ export default function PerfilScreen() {
                                     setConfirmPassword('');
                                 }}
                             >
-                                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancelar</Text>
+                                <Text style={styles.cancelButtonText}>Cancelar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, { backgroundColor: colors.secondary }]}
+                                style={[styles.modalButton, styles.saveButton]}
                                 onPress={handleChangePassword}
                                 disabled={loadingPassword}
                             >
                                 <Text style={styles.saveButtonText}>
-                                    {loadingPassword ? 'Guardando...' : 'Cambiar'}
+                                    {loadingPassword ? 'Cambiando...' : 'Cambiar'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
             </Modal>
-        </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 20,
-        backgroundColor: '#8B4513',
-    },
-    backButton: {
-        padding: 5,
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#FFF',
+        backgroundColor: Colors.dark.background,
     },
     avatarSection: {
         alignItems: 'center',
-        paddingVertical: 30,
-        backgroundColor: '#8B4513',
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
+        paddingVertical: Spacing.xxl,
+        paddingHorizontal: Spacing.xl,
     },
     avatarCircle: {
         width: 100,
         height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: BorderRadius.round,
+        backgroundColor: Colors.primary.main,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
-        borderColor: '#FFF',
-        marginBottom: 15,
+        marginBottom: Spacing.lg,
+        ...Shadows.glow,
     },
     avatarText: {
         fontSize: 40,
-        fontWeight: 'bold',
-        color: '#FFF',
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.bold,
     },
     userName: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#FFF',
-        marginBottom: 5,
+        fontSize: Typography.sizes.h3,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.xs,
     },
     userEmail: {
-        fontSize: 14,
-        color: '#FFF8F0',
-        opacity: 0.9,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
     },
-    cardsContainer: {
-        padding: 20,
+    menuSection: {
+        paddingHorizontal: Spacing.xl,
     },
-    infoCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    cardHeader: {
+    menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.md,
+        ...Shadows.medium,
     },
-    cardIconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#FFF8F0',
+    menuItemDisabled: {
+        opacity: 0.6,
+    },
+    iconCircle: {
+        width: 44,
+        height: 44,
+        borderRadius: BorderRadius.circle,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 15,
+        marginRight: Spacing.md,
     },
-    cardContent: {
+    menuItemText: {
         flex: 1,
     },
-    cardLabel: {
-        fontSize: 12,
-        color: '#8D6E63',
-        marginBottom: 4,
+    menuItemTitle: {
+        fontSize: Typography.sizes.body,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.semibold,
+        marginBottom: 2,
     },
-    cardValue: {
-        fontSize: 16,
-        color: '#5D4037',
-        fontWeight: '600',
+    menuItemSubtitle: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
     },
-    // Modal styles
+    logoutSection: {
+        paddingHorizontal: Spacing.xl,
+        marginTop: Spacing.xl,
+    },
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.status.error + '15',
+        borderRadius: BorderRadius.lg,
+        paddingVertical: Spacing.lg,
+        gap: Spacing.sm,
+    },
+    logoutText: {
+        fontSize: Typography.sizes.body,
+        color: Colors.status.error,
+        fontWeight: Typography.weights.semibold,
+    },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: Spacing.xl,
     },
-    modalContainer: {
-        backgroundColor: '#FFF',
-        borderRadius: 20,
-        padding: 25,
+    modalContent: {
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.xxl,
         width: '100%',
         maxWidth: 400,
     },
     modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginBottom: 20,
+        fontSize: Typography.sizes.h4,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.xl,
         textAlign: 'center',
     },
-    modalInput: {
-        backgroundColor: '#FFF8F0',
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 15,
-        fontSize: 16,
+    input: {
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.md,
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.md,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        marginBottom: Spacing.md,
         borderWidth: 1,
-        borderColor: '#F5E6D8',
+        borderColor: Colors.border.default,
     },
     modalButtons: {
         flexDirection: 'row',
-        gap: 10,
-        marginTop: 10,
+        gap: Spacing.md,
+        marginTop: Spacing.lg,
     },
     modalButton: {
         flex: 1,
-        padding: 15,
-        borderRadius: 12,
+        paddingVertical: Spacing.md,
+        borderRadius: BorderRadius.md,
         alignItems: 'center',
     },
     cancelButton: {
-        backgroundColor: '#F5E6D8',
-    },
-    saveButton: {
-        backgroundColor: '#D4AF37',
+        backgroundColor: Colors.dark.surface,
+        borderWidth: 1,
+        borderColor: Colors.border.default,
     },
     cancelButtonText: {
-        color: '#5D4037',
-        fontWeight: '600',
-        fontSize: 16,
+        color: Colors.text.secondary,
+        fontSize: Typography.sizes.bodySmall,
+        fontWeight: Typography.weights.semibold,
+    },
+    saveButton: {
+        backgroundColor: Colors.primary.main,
     },
     saveButtonText: {
-        color: '#FFF',
-        fontWeight: 'bold',
-        fontSize: 16,
+        color: Colors.dark.background,
+        fontSize: Typography.sizes.bodySmall,
+        fontWeight: Typography.weights.bold,
     },
 });

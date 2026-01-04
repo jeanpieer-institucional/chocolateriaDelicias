@@ -1,296 +1,313 @@
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import AppHeader from '../../components/AppHeader';
-import { useTheme } from '../context/ThemeContext';
+import CategoryChip from '../../components/CategoryChip';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../constants/DesignSystem';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
-const blogs = [
+// Datos de blogs
+const blogDestacado = {
+    id: 1,
+    categoria: 'HISTORIA',
+    titulo: 'La Historia Secreta del Cacao',
+    descripcion: 'Descubre los orígenes antiguos de tu postre favorito y cómo ha evolucionado desde los...',
+    tiempo: 'Hace 2 horas',
+    imagen: 'https://images.unsplash.com/photo-1511381939415-e44015466834?auto=format&fit=crop&w=800&q=80',
+};
+
+const blogsRecientes = [
     {
-        titulo: 'Experiencia con cacao orgánico',
-        foto: require('../../assets/images/seleccion.png'),
-        resumen: 'Descubre cómo seleccionamos el mejor cacao orgánico para nuestros chocolates artesanales',
-        fecha: '15 Nov 2024',
-        tiempoLectura: '5 min lectura',
-        categoria: 'Cacao Premium'
+        id: 2,
+        categoria: 'RECETAS',
+        titulo: 'Cómo hacer trufas en casa: Guía paso a paso',
+        descripcion: 'Aprende los 3 pasos simples para dominar el arte del chocolate...',
+        tiempo: '15 min',
+        imagen: 'https://images.unsplash.com/photo-1548907040-4baa42d10919?auto=format&fit=crop&w=400&q=80',
     },
     {
-        titulo: 'Receta de Brownies con ChocoDelisias',
-        foto: require('../../assets/images/brownie.png'),
-        resumen: 'Aprende a preparar brownies irresistibles usando nuestras tabletas premium de chocolate 70% cacao',
-        fecha: '12 Nov 2024',
-        tiempoLectura: '8 min lectura',
-        categoria: 'Recetas'
+        id: 3,
+        categoria: 'NOVEDADES',
+        titulo: 'Llegó la Colección de Invierno 2024',
+        descripcion: 'Descubre nuestra nueva corteza de chocolate amargo con menta y...',
+        tiempo: '1h ago',
+        imagen: 'https://images.unsplash.com/photo-1606312619070-d48b4cff3e0d?auto=format&fit=crop&w=400&q=80',
     },
     {
-        titulo: 'El arte del templado del chocolate',
-        foto: require('../../assets/images/templado.png'),
-        resumen: 'Conoce los secretos del proceso de templado que da ese brillo y textura perfecta a nuestros chocolates',
-        fecha: '8 Nov 2024',
-        tiempoLectura: '6 min lectura',
-        categoria: 'Procesos'
-    },
-    {
-        titulo: 'Beneficios del chocolate oscuro',
-        foto: require('../../assets/images/beneficios.png'),
-        resumen: 'Descubre los sorprendentes beneficios para la salud que ofrece el consumo moderado de chocolate oscuro',
-        fecha: '3 Nov 2024',
-        tiempoLectura: '7 min lectura',
-        categoria: 'Salud'
+        id: 4,
+        categoria: 'TIPS',
+        titulo: 'Maridaje de Café y Chocolate',
+        descripcion: 'La guía definitiva para combinar tus granos favoritos con cacao puro.',
+        tiempo: '1 día',
+        imagen: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=400&q=80',
     },
 ];
 
+const categorias = ['Todos', 'Recetas', 'Historia', 'Novedades'];
+
+const getCategoryColor = (categoria: string) => {
+    const colors: { [key: string]: string } = {
+        'HISTORIA': Colors.primary.main,
+        'RECETAS': Colors.primary.main,
+        'NOVEDADES': Colors.primary.main,
+        'TIPS': Colors.primary.main,
+    };
+    return colors[categoria] || Colors.primary.main;
+};
+
 export default function Blogs() {
-    const { colors } = useTheme();
+    const [selectedCategory, setSelectedCategory] = useState('Todos');
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.container}>
             <AppHeader />
+
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: colors.card }]}>
-                <Text style={[styles.mainTitle, { color: colors.text }]}>Blog ChocoDelisias</Text>
-                <Text style={[styles.subTitle, { color: colors.tabIconDefault }]}>Descubre el mundo del chocolate artesanal</Text>
+            <View style={styles.header}>
+                <Text style={styles.title}>Blog</Text>
+                <TouchableOpacity>
+                    <Ionicons name="search" size={24} color={Colors.text.primary} />
+                </TouchableOpacity>
             </View>
 
-            <ScrollView
-                style={styles.scrollView}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContent}
-            >
-                {/* Featured Blog */}
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Artículo Destacado</Text>
-                <TouchableOpacity style={[styles.featuredCard, { backgroundColor: colors.card }]}>
-                    <Image source={blogs[0].foto} style={styles.featuredImg} />
-                    <View style={styles.featuredContent}>
-                        <View style={[styles.featuredBadge, { backgroundColor: colors.primary }]}>
-                            <Text style={styles.featuredBadgeText}>DESTACADO</Text>
-                        </View>
-                        <Text style={[styles.featuredTitle, { color: colors.text }]}>{blogs[0].titulo}</Text>
-                        <Text style={[styles.featuredResumen, { color: colors.text }]}>{blogs[0].resumen}</Text>
-                        <View style={styles.metaInfo}>
-                            <Text style={styles.metaText}>{blogs[0].fecha}</Text>
-                            <Text style={styles.metaDot}>•</Text>
-                            <Text style={styles.metaText}>{blogs[0].tiempoLectura}</Text>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-
-                {/* All Blogs */}
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Todos los Artículos</Text>
-                <View style={styles.blogsGrid}>
-                    {blogs.map((blog, idx) => (
-                        <TouchableOpacity key={idx} style={[styles.blogCard, { backgroundColor: colors.card }]}>
-                            <View style={styles.imageContainer}>
-                                <Image source={blog.foto} style={styles.blogImg} />
-                                <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(blog.categoria) }]}>
-                                    <Text style={styles.categoryText}>{blog.categoria}</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.blogContent}>
-                                <Text style={[styles.blogTitle, { color: colors.text }]}>{blog.titulo}</Text>
-                                <Text style={[styles.blogResumen, { color: colors.text }]} numberOfLines={3}>
-                                    {blog.resumen}
-                                </Text>
-
-                                <View style={styles.cardFooter}>
-                                    <View style={styles.metaInfo}>
-                                        <Text style={styles.metaText}>{blog.fecha}</Text>
-                                        <Text style={styles.metaDot}>•</Text>
-                                        <Text style={styles.metaText}>{blog.tiempoLectura}</Text>
-                                    </View>
-                                    <TouchableOpacity style={[styles.readButton, { backgroundColor: colors.primary }]}>
-                                        <Text style={styles.readButtonText}>Leer</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    ))}
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Chips de categorías */}
+                <View style={styles.categoriesWrapper}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.categoriesContainer}
+                    >
+                        {categorias.map((cat) => (
+                            <CategoryChip
+                                key={cat}
+                                label={cat}
+                                selected={selectedCategory === cat}
+                                onPress={() => setSelectedCategory(cat)}
+                            />
+                        ))}
+                    </ScrollView>
                 </View>
+
+                {/* Blog Destacado */}
+                <Animated.View
+                    entering={FadeInUp.duration(600).springify()}
+                    style={styles.featuredSection}
+                >
+                    <View style={styles.featuredBadge}>
+                        <Text style={styles.featuredBadgeText}>DESTACADO</Text>
+                    </View>
+
+                    <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9}>
+                        <Image
+                            source={{ uri: blogDestacado.imagen }}
+                            style={styles.featuredImage}
+                        />
+                        <View style={styles.featuredOverlay}>
+                            <View style={styles.featuredContent}>
+                                <View style={styles.featuredMeta}>
+                                    <Text style={[styles.categoryTag, { color: getCategoryColor(blogDestacado.categoria) }]}>
+                                        {blogDestacado.categoria}
+                                    </Text>
+                                    <Text style={styles.timeText}>• {blogDestacado.tiempo}</Text>
+                                </View>
+                                <Text style={styles.featuredTitle}>{blogDestacado.titulo}</Text>
+                                <Text style={styles.featuredDescription}>{blogDestacado.descripcion}</Text>
+                                <TouchableOpacity style={styles.readButton}>
+                                    <Text style={styles.readButtonText}>Leer artículo</Text>
+                                    <Ionicons name="arrow-forward" size={16} color={Colors.primary.main} />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                </Animated.View>
+
+                {/* Blogs Recientes */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Recientes</Text>
+
+                    <FlatList
+                        data={blogsRecientes}
+                        scrollEnabled={false}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item, index }) => (
+                            <Animated.View entering={FadeInDown.delay(index * 100).duration(600)}>
+                                <TouchableOpacity style={styles.blogCard} activeOpacity={0.9}>
+                                    <View style={styles.blogContent}>
+                                        <Text style={[styles.categoryTag, { color: getCategoryColor(item.categoria) }]}>
+                                            {item.categoria}
+                                        </Text>
+                                        <Text style={styles.blogTitle}>{item.titulo}</Text>
+                                        <Text style={styles.blogDescription}>{item.descripcion}</Text>
+                                        <View style={styles.blogMeta}>
+                                            <Ionicons name="time-outline" size={14} color={Colors.text.secondary} />
+                                            <Text style={styles.blogTime}>{item.tiempo}</Text>
+                                        </View>
+                                    </View>
+                                    <Image
+                                        source={{ uri: item.imagen }}
+                                        style={styles.blogImage}
+                                    />
+                                </TouchableOpacity>
+                            </Animated.View>
+                        )}
+                    />
+                </View>
+
+                {/* Espaciado final */}
+                <View style={{ height: Spacing.xxxl }} />
             </ScrollView>
         </View>
     );
 }
 
-// Función para colores de categoría
-const getCategoryColor = (category: string): string => {
-    const colors = {
-        'Cacao Premium': '#8B4513',
-        'Recetas': '#A0522D',
-        'Procesos': '#CD853F',
-        'Salud': '#D2691E'
-    };
-    return colors[category as keyof typeof colors] || '#8B4513';
-};
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
     header: {
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 20,
-        backgroundColor: '#FFF',
-        borderBottomLeftRadius: 25,
-        borderBottomRightRadius: 25,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-    mainTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        textAlign: 'center',
-        marginBottom: 6,
-    },
-    subTitle: {
-        fontSize: 16,
-        color: '#8D6E63',
-        textAlign: 'center',
-        fontWeight: '500',
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingHorizontal: 15,
-        paddingBottom: 30,
-    },
-    sectionTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginTop: 25,
-        marginBottom: 15,
-        marginLeft: 5,
-    },
-    featuredCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 20,
-        overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.15,
-        shadowRadius: 15,
-        elevation: 8,
-        marginBottom: 10,
-    },
-    featuredImg: {
-        width: '100%',
-        height: 200,
-    },
-    featuredContent: {
-        padding: 20,
-    },
-    featuredBadge: {
-        backgroundColor: '#8B4513',
-        alignSelf: 'flex-start',
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-        marginBottom: 10,
-    },
-    featuredBadgeText: {
-        color: '#FFF',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    featuredTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginBottom: 8,
-        lineHeight: 24,
-    },
-    featuredResumen: {
-        fontSize: 15,
-        color: '#7E6B5A',
-        lineHeight: 20,
-        marginBottom: 12,
-    },
-    blogsGrid: {
-        marginBottom: 20,
-    },
-    blogCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 18,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-        overflow: 'hidden',
-    },
-    imageContainer: {
-        position: 'relative',
-    },
-    blogImg: {
-        width: '100%',
-        height: 160,
-    },
-    categoryBadge: {
-        position: 'absolute',
-        top: 12,
-        left: 12,
-        backgroundColor: '#8B4513',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 10,
-    },
-    categoryText: {
-        color: '#FFF',
-        fontSize: 11,
-        fontWeight: '600',
-    },
-    blogContent: {
-        padding: 16,
-    },
-    blogTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginBottom: 8,
-        lineHeight: 22,
-    },
-    blogResumen: {
-        fontSize: 14,
-        color: '#7E6B5A',
-        lineHeight: 19,
-        marginBottom: 12,
-    },
-    cardFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.lg,
     },
-    metaInfo: {
+    title: {
+        fontSize: Typography.sizes.h3,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+    },
+    categoriesWrapper: {
+        marginBottom: Spacing.lg,
+    },
+    categoriesContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingBottom: Spacing.sm,
+    },
+    featuredSection: {
+        paddingHorizontal: Spacing.xl,
+        marginBottom: Spacing.xxl,
+    },
+    featuredBadge: {
+        backgroundColor: Colors.primary.main,
+        alignSelf: 'flex-start',
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.xs,
+        borderRadius: BorderRadius.sm,
+        marginBottom: Spacing.md,
+    },
+    featuredBadgeText: {
+        fontSize: Typography.sizes.tiny,
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.extrabold,
+        letterSpacing: 0.5,
+    },
+    featuredCard: {
+        height: 320,
+        borderRadius: BorderRadius.lg,
+        overflow: 'hidden',
+        ...Shadows.large,
+    },
+    featuredImage: {
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+    },
+    featuredOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(13, 31, 26, 0.6)',
+        justifyContent: 'flex-end',
+    },
+    featuredContent: {
+        padding: Spacing.xl,
+    },
+    featuredMeta: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginBottom: Spacing.sm,
     },
-    metaText: {
-        fontSize: 12,
-        color: '#9E8E7E',
-        fontWeight: '500',
+    categoryTag: {
+        fontSize: Typography.sizes.caption,
+        fontWeight: Typography.weights.bold,
+        letterSpacing: 0.5,
     },
-    metaDot: {
-        fontSize: 12,
-        color: '#9E8E7E',
-        marginHorizontal: 6,
+    timeText: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
+        marginLeft: Spacing.xs,
+    },
+    featuredTitle: {
+        fontSize: Typography.sizes.h3,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.sm,
+    },
+    featuredDescription: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+        lineHeight: Typography.lineHeights.normal * Typography.sizes.bodySmall,
+        marginBottom: Spacing.lg,
     },
     readButton: {
-        backgroundColor: '#8B4513',
-        paddingHorizontal: 16,
-        paddingVertical: 6,
-        borderRadius: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.xs,
     },
     readButtonText: {
-        color: '#FFF',
-        fontSize: 13,
-        fontWeight: '600',
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.primary.main,
+        fontWeight: Typography.weights.semibold,
+    },
+    section: {
+        paddingHorizontal: Spacing.xl,
+        marginBottom: Spacing.xl,
+    },
+    sectionTitle: {
+        fontSize: Typography.sizes.h4,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.lg,
+    },
+    blogCard: {
+        flexDirection: 'row',
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
+        ...Shadows.medium,
+    },
+    blogContent: {
+        flex: 1,
+        marginRight: Spacing.md,
+    },
+    blogTitle: {
+        fontSize: Typography.sizes.body,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.xs,
+        lineHeight: Typography.lineHeights.tight * Typography.sizes.body,
+    },
+    blogDescription: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
+        lineHeight: Typography.lineHeights.normal * Typography.sizes.caption,
+        marginBottom: Spacing.sm,
+    },
+    blogMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.xs,
+    },
+    blogTime: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
+    },
+    blogImage: {
+        width: 100,
+        height: 100,
+        borderRadius: BorderRadius.md,
     },
 });

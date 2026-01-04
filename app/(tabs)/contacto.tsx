@@ -1,20 +1,24 @@
-import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { Image, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import AppHeader from '../../components/AppHeader';
-import { useTheme } from '../context/ThemeContext';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../constants/DesignSystem';
+
+const contactInfo = {
+    phone: '+55 1234 5678',
+    email: 'hola@chocodelicias.com',
+    address: 'Calle del Cacao 123, Centro Histórico',
+    hours: {
+        weekdays: '9:00 AM - 8:00 PM',
+        weekends: '10:00 AM - 6:00 PM',
+    },
+};
 
 export default function Contacto() {
-    const { colors } = useTheme();
-
-    const contactInfo = {
-        phone: '+51 952 295 720',
-        email: 'soporte.ofertas.piero@gmail.com',
-        address: 'Av. Dulce 123, Miraflores, Lima',
-        hours: {
-            weekdays: '9:00 AM - 8:00 PM',
-            weekends: '10:00 AM - 6:00 PM'
-        }
-    };
+    const [nombre, setNombre] = useState('');
+    const [email, setEmail] = useState('');
+    const [mensaje, setMensaje] = useState('');
 
     const handleCall = () => {
         Linking.openURL(`tel:${contactInfo.phone}`);
@@ -24,309 +28,334 @@ export default function Contacto() {
         Linking.openURL(`mailto:${contactInfo.email}`);
     };
 
-    const handleOpenMaps = () => {
+    const handleLocation = () => {
+        // Abrir en Google Maps
         const address = encodeURIComponent(contactInfo.address);
-        Linking.openURL(`https://maps.google.com/?q=${address}`);
+        Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${address}`);
+    };
+
+    const handleSubmit = () => {
+        // Aquí iría la lógica para enviar el mensaje
+        console.log('Mensaje enviado:', { nombre, email, mensaje });
     };
 
     return (
-        <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
             <AppHeader />
-            {/* Header Section */}
-            <View style={styles.header}>
-                <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1429554429301-01d0aaae5e05?auto=format&fit=crop&w=800&q=80' }}
-                    style={styles.headerImage}
-                />
-                <View style={styles.headerOverlay}>
-                    <Text style={styles.headerTitle}>Visítanos</Text>
-                    <Text style={styles.headerSubtitle}>Te esperamos con los brazos abiertos</Text>
-                </View>
+
+            {/* Título de la pantalla */}
+            <View style={styles.titleContainer}>
+                <Text style={styles.title}>Contacto</Text>
             </View>
 
-            {/* Main Content */}
-            <View style={styles.content}>
-                {/* Store Info Card */}
-                <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-                    <View style={styles.storeHeader}>
-                        <Text style={[styles.storeName, { color: colors.text }]}>ChocoDelizia Tienda</Text>
-                        <View style={styles.statusBadge}>
-                            <View style={styles.statusDot} />
-                            <Text style={styles.statusText}>Abierto ahora</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Mapa con ubicación */}
+                <Animated.View
+                    entering={FadeInUp.duration(600).springify()}
+                    style={styles.mapContainer}
+                >
+                    <Image
+                        source={{ uri: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80' }}
+                        style={styles.mapImage}
+                        resizeMode="cover"
+                    />
+                    <View style={styles.mapOverlay}>
+                        <View style={styles.locationCard}>
+                            <Text style={styles.locationLabel}>UBICACIÓN</Text>
+                            <Text style={styles.locationName}>Choco Delicias Centro</Text>
                         </View>
+                        <TouchableOpacity style={styles.mapButton} onPress={handleLocation}>
+                            <Ionicons name="navigate" size={24} color={Colors.primary.main} />
+                        </TouchableOpacity>
                     </View>
+                </Animated.View>
 
-                    <Text style={[styles.storeDescription, { color: colors.text }]}>
-                        Tu destino premium para los mejores chocolates artesanales elaborados con cacao peruano de la más alta calidad.
-                    </Text>
+                {/* Información de la tienda */}
+                <View style={styles.content}>
+                    <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+                        <Text style={styles.sectionTitle}>Información de la tienda</Text>
 
-                    {/* Contact Items */}
-                    <View style={styles.contactList}>
-                        {/* Phone */}
-                        <TouchableOpacity style={styles.contactItem} onPress={handleCall}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#27AE60' }]}>
-                                <Ionicons name="call" size={20} color="#FFF" />
-                            </View>
-                            <View style={styles.contactText}>
-                                <Text style={styles.contactLabel}>Teléfono</Text>
-                                <Text style={[styles.contactValue, { color: colors.text }]}>{contactInfo.phone}</Text>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
-                        </TouchableOpacity>
+                        <View style={styles.infoCard}>
+                            {/* Dirección */}
+                            <TouchableOpacity style={styles.infoItem} onPress={handleLocation}>
+                                <View style={[styles.iconCircle, { backgroundColor: Colors.primary.main + '20' }]}>
+                                    <Ionicons name="location" size={20} color={Colors.primary.main} />
+                                </View>
+                                <View style={styles.infoText}>
+                                    <Text style={styles.infoLabel}>Dirección</Text>
+                                    <Text style={styles.infoValue}>{contactInfo.address}</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
+                            </TouchableOpacity>
 
-                        {/* Email */}
-                        <TouchableOpacity style={styles.contactItem} onPress={handleEmail}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#E74C3C' }]}>
-                                <Ionicons name="mail" size={20} color="#FFF" />
-                            </View>
-                            <View style={styles.contactText}>
-                                <Text style={styles.contactLabel}>Email</Text>
-                                <Text style={[styles.contactValue, { color: colors.text }]}>{contactInfo.email}</Text>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
-                        </TouchableOpacity>
+                            {/* Teléfono */}
+                            <TouchableOpacity style={styles.infoItem} onPress={handleCall}>
+                                <View style={[styles.iconCircle, { backgroundColor: Colors.status.info + '20' }]}>
+                                    <Ionicons name="call" size={20} color={Colors.status.info} />
+                                </View>
+                                <View style={styles.infoText}>
+                                    <Text style={styles.infoLabel}>Teléfono</Text>
+                                    <Text style={styles.infoValue}>{contactInfo.phone}</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
+                            </TouchableOpacity>
 
-                        {/* Address */}
-                        <TouchableOpacity style={styles.contactItem} onPress={handleOpenMaps}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#3498DB' }]}>
-                                <Ionicons name="location" size={20} color="#FFF" />
-                            </View>
-                            <View style={styles.contactText}>
-                                <Text style={styles.contactLabel}>Dirección</Text>
-                                <Text style={[styles.contactValue, { color: colors.text }]}>{contactInfo.address}</Text>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
-                        </TouchableOpacity>
+                            {/* Email */}
+                            <TouchableOpacity style={styles.infoItem} onPress={handleEmail}>
+                                <View style={[styles.iconCircle, { backgroundColor: Colors.status.warning + '20' }]}>
+                                    <MaterialIcons name="email" size={20} color={Colors.status.warning} />
+                                </View>
+                                <View style={styles.infoText}>
+                                    <Text style={styles.infoLabel}>Email</Text>
+                                    <Text style={styles.infoValue}>{contactInfo.email}</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
+                            </TouchableOpacity>
 
-                        {/* Hours */}
-                        <View style={styles.contactItem}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#9B59B6' }]}>
-                                <FontAwesome5 name="clock" size={18} color="#FFF" />
-                            </View>
-                            <View style={styles.contactText}>
-                                <Text style={styles.contactLabel}>Horario</Text>
-                                <View>
-                                    <Text style={[styles.hoursText, { color: colors.text }]}>Lunes a Viernes: {contactInfo.hours.weekdays}</Text>
-                                    <Text style={[styles.hoursText, { color: colors.text }]}>Sábados y Domingos: {contactInfo.hours.weekends}</Text>
+                            {/* Horario */}
+                            <View style={styles.infoItem}>
+                                <View style={[styles.iconCircle, { backgroundColor: Colors.primary.main + '20' }]}>
+                                    <Ionicons name="time" size={20} color={Colors.primary.main} />
+                                </View>
+                                <View style={styles.infoText}>
+                                    <Text style={styles.infoLabel}>Horario de atención</Text>
+                                    <Text style={styles.infoValue}>Lun - Vie      {contactInfo.hours.weekdays}</Text>
+                                    <Text style={styles.infoValue}>Sáb - Dom    {contactInfo.hours.weekends}</Text>
                                 </View>
                             </View>
                         </View>
-                    </View>
+                    </Animated.View>
+
+                    {/* Formulario de contacto */}
+                    <Animated.View entering={FadeInDown.delay(400).duration(600)}>
+                        <Text style={styles.sectionTitle}>Envíanos un mensaje</Text>
+
+                        <View style={styles.formCard}>
+                            {/* Nombre */}
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>Nombre completo</Text>
+                                <View style={styles.inputContainer}>
+                                    <Ionicons name="person-outline" size={20} color={Colors.text.secondary} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Ej. Juan Pérez"
+                                        placeholderTextColor={Colors.text.hint}
+                                        value={nombre}
+                                        onChangeText={setNombre}
+                                    />
+                                </View>
+                            </View>
+
+                            {/* Email */}
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>Correo electrónico</Text>
+                                <View style={styles.inputContainer}>
+                                    <MaterialIcons name="alternate-email" size={20} color={Colors.text.secondary} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="tucorreo@ejemplo.com"
+                                        placeholderTextColor={Colors.text.hint}
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        keyboardType="email-address"
+                                    />
+                                </View>
+                            </View>
+
+                            {/* Mensaje */}
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>Mensaje</Text>
+                                <View style={[styles.inputContainer, styles.textAreaContainer]}>
+                                    <Ionicons name="chatbox-outline" size={20} color={Colors.text.secondary} style={styles.textAreaIcon} />
+                                    <TextInput
+                                        style={[styles.input, styles.textArea]}
+                                        placeholder="¿En qué podemos ayudarte?"
+                                        placeholderTextColor={Colors.text.hint}
+                                        value={mensaje}
+                                        onChangeText={setMensaje}
+                                        multiline
+                                        numberOfLines={4}
+                                    />
+                                </View>
+                            </View>
+
+                            {/* Botón enviar */}
+                            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} activeOpacity={0.9}>
+                                <Text style={styles.submitButtonText}>Enviar mensaje</Text>
+                                <Ionicons name="arrow-forward" size={20} color={Colors.dark.background} />
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
                 </View>
 
-                {/* Quick Actions */}
-                <View style={styles.actionsRow}>
-                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={handleCall}>
-                        <Ionicons name="call" size={24} color={colors.primary} />
-                        <Text style={[styles.actionText, { color: colors.primary }]}>Llamar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={handleEmail}>
-                        <Ionicons name="mail" size={24} color={colors.primary} />
-                        <Text style={[styles.actionText, { color: colors.primary }]}>Email</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={handleOpenMaps}>
-                        <Ionicons name="navigate" size={24} color={colors.primary} />
-                        <Text style={[styles.actionText, { color: colors.primary }]}>Cómo llegar</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Map Preview */}
-                <View style={styles.mapSection}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Nuestra Ubicación</Text>
-                    <View style={[styles.mapPreview, { backgroundColor: colors.card }]}>
-                        <Image
-                            source={{ uri: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80' }}
-                            style={styles.mapImage}
-                        />
-                        <TouchableOpacity style={[styles.mapButton, { backgroundColor: colors.primary }]} onPress={handleOpenMaps}>
-                            <Text style={styles.mapButtonText}>Abrir en Maps</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-        </ScrollView>
+                {/* Espaciado final */}
+                <View style={{ height: Spacing.xxxl }} />
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
-    header: {
-        height: 99,
+    titleContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.lg,
+    },
+    title: {
+        fontSize: Typography.sizes.h3,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+    },
+    mapContainer: {
+        height: 200,
         position: 'relative',
     },
-    headerImage: {
+    mapImage: {
         width: '100%',
         height: '100%',
+        backgroundColor: Colors.dark.surface,
     },
-    headerOverlay: {
+    mapOverlay: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'rgba(139, 69, 19, 0.85)',
-        padding: 20,
-    },
-    headerTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#FFF',
-        marginBottom: 4,
-    },
-    headerSubtitle: {
-        fontSize: 16,
-        color: '#FFF8F0',
-        fontWeight: '500',
-    },
-    content: {
-        padding: 20,
-    },
-    infoCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 20,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.12,
-        shadowRadius: 15,
-        elevation: 8,
-        marginBottom: 20,
-    },
-    storeHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 12,
+        alignItems: 'flex-end',
+        padding: Spacing.xl,
     },
-    storeName: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#5D4037',
+    locationCard: {
+        backgroundColor: Colors.dark.card,
+        padding: Spacing.lg,
+        borderRadius: BorderRadius.md,
         flex: 1,
-        marginRight: 10,
+        marginRight: Spacing.md,
+        ...Shadows.medium,
     },
-    statusBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#E8F5E8',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 12,
+    locationLabel: {
+        fontSize: Typography.sizes.tiny,
+        color: Colors.primary.main,
+        fontWeight: Typography.weights.bold,
+        letterSpacing: 0.5,
+        marginBottom: Spacing.xs,
     },
-    statusDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#27AE60',
-        marginRight: 6,
-    },
-    statusText: {
-        fontSize: 12,
-        color: '#27AE60',
-        fontWeight: '600',
-    },
-    storeDescription: {
-        fontSize: 15,
-        color: '#7E6B5A',
-        lineHeight: 22,
-        marginBottom: 20,
-    },
-    contactList: {
-        gap: 16,
-    },
-    contactItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 8,
-    },
-    iconContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 15,
-    },
-    contactText: {
-        flex: 1,
-    },
-    contactLabel: {
-        fontSize: 13,
-        color: '#8D6E63',
-        fontWeight: '500',
-        marginBottom: 2,
-    },
-    contactValue: {
-        fontSize: 16,
-        color: '#5D4037',
-        fontWeight: '600',
-    },
-    hoursText: {
-        fontSize: 14,
-        color: '#5D4037',
-        marginBottom: 2,
-    },
-    actionsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 25,
-    },
-    actionButton: {
-        backgroundColor: '#FFF',
-        flex: 1,
-        marginHorizontal: 6,
-        paddingVertical: 16,
-        borderRadius: 16,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 4,
-        borderWidth: 1,
-        borderColor: '#F5E6D8',
-    },
-    actionText: {
-        fontSize: 13,
-        color: '#8B4513',
-        fontWeight: '600',
-        marginTop: 6,
-    },
-    mapSection: {
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#5D4037',
-        marginBottom: 15,
-    },
-    mapPreview: {
-        backgroundColor: '#FFF',
-        borderRadius: 16,
-        overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 6,
-    },
-    mapImage: {
-        width: '100%',
-        height: 150,
+    locationName: {
+        fontSize: Typography.sizes.body,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
     },
     mapButton: {
-        backgroundColor: '#8B4513',
-        paddingVertical: 14,
+        width: 56,
+        height: 56,
+        borderRadius: BorderRadius.circle,
+        backgroundColor: Colors.dark.card,
+        justifyContent: 'center',
         alignItems: 'center',
+        ...Shadows.medium,
     },
-    mapButtonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
+    content: {
+        padding: Spacing.xl,
+    },
+    sectionTitle: {
+        fontSize: Typography.sizes.h5,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.bold,
+        marginBottom: Spacing.lg,
+    },
+    infoCard: {
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.xxl,
+        ...Shadows.medium,
+    },
+    infoItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: Spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border.default,
+    },
+    iconCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: BorderRadius.circle,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: Spacing.md,
+    },
+    infoText: {
+        flex: 1,
+    },
+    infoLabel: {
+        fontSize: Typography.sizes.caption,
+        color: Colors.text.secondary,
+        marginBottom: 2,
+    },
+    infoValue: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.medium,
+    },
+    formCard: {
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.xl,
+        ...Shadows.medium,
+    },
+    inputGroup: {
+        marginBottom: Spacing.lg,
+    },
+    inputLabel: {
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        fontWeight: Typography.weights.semibold,
+        marginBottom: Spacing.sm,
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.dark.surface,
+        borderRadius: BorderRadius.md,
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.md,
+        borderWidth: 1,
+        borderColor: Colors.border.default,
+    },
+    input: {
+        flex: 1,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.primary,
+        marginLeft: Spacing.sm,
+    },
+    textAreaContainer: {
+        alignItems: 'flex-start',
+        paddingVertical: Spacing.md,
+    },
+    textAreaIcon: {
+        marginTop: Spacing.xs,
+    },
+    textArea: {
+        height: 80,
+        textAlignVertical: 'top',
+    },
+    submitButton: {
+        backgroundColor: Colors.primary.main,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: Spacing.lg,
+        borderRadius: BorderRadius.xxxl,
+        gap: Spacing.sm,
+        marginTop: Spacing.md,
+    },
+    submitButtonText: {
+        fontSize: Typography.sizes.body,
+        color: Colors.dark.background,
+        fontWeight: Typography.weights.bold,
     },
 });

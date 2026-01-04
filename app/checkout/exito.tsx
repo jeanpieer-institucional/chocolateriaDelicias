@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '../../constants/DesignSystem';
 
 export default function CheckoutSuccessScreen() {
     const router = useRouter();
@@ -11,42 +13,48 @@ export default function CheckoutSuccessScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.content}>
-                <View style={styles.iconContainer}>
-                    <Ionicons name="checkmark-circle" size={120} color="#4CAF50" />
-                </View>
+                <Animated.View entering={ZoomIn.duration(600)} style={styles.iconContainer}>
+                    <View style={styles.iconCircle}>
+                        <Ionicons name="checkmark" size={60} color={Colors.dark.background} />
+                    </View>
+                </Animated.View>
 
-                <Text style={styles.title}>¡Pedido Confirmado!</Text>
-                <Text style={styles.subtitle}>
-                    Tu pedido ha sido procesado exitosamente
-                </Text>
+                <Animated.View entering={FadeInDown.delay(200).duration(600)} style={styles.textContainer}>
+                    <Text style={styles.title}>¡Pedido Confirmado!</Text>
+                    <Text style={styles.subtitle}>
+                        Tu pedido ha sido procesado exitosamente
+                    </Text>
+                </Animated.View>
 
-                <View style={styles.orderInfo}>
+                <Animated.View entering={FadeInDown.delay(400).duration(600)} style={styles.orderInfo}>
                     <Text style={styles.orderLabel}>Número de Pedido</Text>
                     <Text style={styles.orderNumber}>#{orderId}</Text>
-                </View>
+                </Animated.View>
 
-                <View style={styles.infoBox}>
-                    <Ionicons name="information-circle-outline" size={24} color="#8B4513" />
+                <Animated.View entering={FadeInDown.delay(600).duration(600)} style={styles.infoBox}>
+                    <Ionicons name="information-circle-outline" size={24} color={Colors.text.primary} />
                     <Text style={styles.infoText}>
                         Recibirás una confirmación con los detalles de tu pedido.
                         Puedes revisar el estado en tu historial de pedidos.
                     </Text>
-                </View>
+                </Animated.View>
 
-                <View style={styles.actions}>
+                <Animated.View entering={FadeInDown.delay(800).duration(600)} style={styles.actions}>
                     <TouchableOpacity
                         style={styles.primaryButton}
                         onPress={() => router.push(`/pedidos/${orderId}`)}
+                        activeOpacity={0.9}
                     >
-                        <Ionicons name="receipt-outline" size={20} color="#FFF" />
+                        <Ionicons name="receipt-outline" size={22} color={Colors.dark.background} />
                         <Text style={styles.primaryButtonText}>Ver Pedido</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.secondaryButton}
                         onPress={() => router.push('/(tabs)/productos')}
+                        activeOpacity={0.8}
                     >
-                        <Ionicons name="cart-outline" size={20} color="#8B4513" />
+                        <Ionicons name="cart-outline" size={22} color={Colors.primary.main} />
                         <Text style={styles.secondaryButtonText}>Seguir Comprando</Text>
                     </TouchableOpacity>
 
@@ -56,7 +64,7 @@ export default function CheckoutSuccessScreen() {
                     >
                         <Text style={styles.tertiaryButtonText}>Volver al Inicio</Text>
                     </TouchableOpacity>
-                </View>
+                </Animated.View>
             </View>
         </View>
     );
@@ -65,110 +73,127 @@ export default function CheckoutSuccessScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: Colors.dark.background,
     },
     content: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 30,
+        padding: Spacing.xl,
     },
     iconContainer: {
-        marginBottom: 30,
+        marginBottom: Spacing.xxl,
+    },
+    iconCircle: {
+        width: 100,
+        height: 100,
+        borderRadius: BorderRadius.circle,
+        backgroundColor: Colors.status.success,
+        justifyContent: 'center',
+        alignItems: 'center',
+        ...Shadows.glow,
+    },
+    textContainer: {
+        alignItems: 'center',
+        marginBottom: Spacing.xl,
     },
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#3E2723',
-        marginBottom: 10,
+        fontSize: Typography.sizes.h2,
+        fontWeight: Typography.weights.extrabold,
+        color: Colors.text.primary,
+        marginBottom: Spacing.sm,
         textAlign: 'center',
     },
     subtitle: {
-        fontSize: 16,
-        color: '#8D6E63',
+        fontSize: Typography.sizes.body,
+        color: Colors.text.secondary,
         textAlign: 'center',
-        marginBottom: 30,
+        maxWidth: 250,
     },
     orderInfo: {
-        backgroundColor: '#FFF',
-        padding: 20,
-        borderRadius: 12,
+        backgroundColor: Colors.dark.card,
+        paddingVertical: Spacing.lg,
+        paddingHorizontal: Spacing.xxl,
+        borderRadius: BorderRadius.xl,
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: Spacing.xl,
         width: '100%',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        ...Shadows.medium,
+        borderWidth: 1,
+        borderColor: Colors.border.default,
     },
     orderLabel: {
-        fontSize: 14,
-        color: '#8D6E63',
-        marginBottom: 5,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
+        marginBottom: Spacing.xs,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
     orderNumber: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#8B4513',
+        fontSize: Typography.sizes.h1,
+        fontWeight: Typography.weights.extrabold,
+        color: Colors.primary.main,
     },
     infoBox: {
         flexDirection: 'row',
-        backgroundColor: '#FFF8E1',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 30,
+        backgroundColor: Colors.dark.surface,
+        padding: Spacing.lg,
+        borderRadius: BorderRadius.lg,
+        marginBottom: Spacing.xxxl,
         borderLeftWidth: 4,
-        borderLeftColor: '#8B4513',
+        borderLeftColor: Colors.primary.main,
+        ...Shadows.small,
+        width: '100%',
     },
     infoText: {
         flex: 1,
-        marginLeft: 10,
-        fontSize: 14,
-        color: '#5D4037',
+        marginLeft: Spacing.md,
+        fontSize: Typography.sizes.bodySmall,
+        color: Colors.text.secondary,
         lineHeight: 20,
     },
     actions: {
         width: '100%',
-        gap: 12,
+        gap: Spacing.md,
     },
     primaryButton: {
         flexDirection: 'row',
-        backgroundColor: '#8B4513',
-        padding: 16,
-        borderRadius: 12,
+        backgroundColor: Colors.primary.main,
+        padding: Spacing.lg,
+        borderRadius: BorderRadius.xxl,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        gap: Spacing.sm,
+        ...Shadows.glow,
     },
     primaryButtonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: 'bold',
+        color: Colors.dark.background,
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
     },
     secondaryButton: {
         flexDirection: 'row',
-        backgroundColor: '#FFF',
-        padding: 16,
-        borderRadius: 12,
+        backgroundColor: Colors.dark.surface,
+        padding: Spacing.lg,
+        borderRadius: BorderRadius.xxl,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        gap: Spacing.sm,
         borderWidth: 2,
-        borderColor: '#8B4513',
+        borderColor: Colors.primary.main,
     },
     secondaryButtonText: {
-        color: '#8B4513',
-        fontSize: 16,
-        fontWeight: 'bold',
+        color: Colors.primary.main,
+        fontSize: Typography.sizes.body,
+        fontWeight: Typography.weights.bold,
     },
     tertiaryButton: {
-        padding: 12,
+        padding: Spacing.md,
         alignItems: 'center',
     },
     tertiaryButtonText: {
-        color: '#8D6E63',
-        fontSize: 14,
+        color: Colors.text.secondary,
+        fontSize: Typography.sizes.bodySmall,
         textDecorationLine: 'underline',
     },
 });
